@@ -1,4 +1,5 @@
-// 1. La lista VIP: tu dominio oficial y tu entorno de prueba
+module.exports = async function handler(req, res) {
+  // 1. La lista VIP: tu dominio oficial y tu entorno de prueba
   const allowedOrigins = [
     'https://prueba-de-ia.vercel.app',
     'http://localhost:3000'          
