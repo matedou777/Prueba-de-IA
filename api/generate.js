@@ -77,12 +77,38 @@ Respondé ÚNICAMENTE con un objeto JSON válido sin saltos de línea internos:
 
     // Limpiamos el texto por si la IA le agrega los backticks de Markdown
     const cleanText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-    const parsed = JSON.parse(cleanText);
     
-    return res.status(200).json({ categoryName: parsed.categoryName, words: parsed.words });
+    try {
+      const parsed = JSON.parse(cleanText);
+      return res.status(200).json({ categoryName: parsed.categoryName, words: parsed.words });
+      
+    } catch (parseError) {
+      // 🇦🇷 MANEJO DE ERROR CON ESTILO ARGENTINO
+      // Si la IA rompió el JSON (seguramente por un intento de inyección), lo escrachamos
+      console.warn('JSON roto por posible inyección:', cleanText);
+      return res.status(200).json({ 
+        categoryName: "🚨 Te creés re Hacker", 
+        words: [
+          "Hacker de la Salada", 
+          "Te hacés el pillo", 
+          "Seguí participando", 
+          "Sos re fantasma", 
+          "Tiraste cualquiera", 
+          "Ciber-gorra", 
+          "Quedaste escrachado", 
+          "Error 404: Dignidad", 
+          "SONIDO METALICOO", 
+          "No me rompas el código", 
+          "Casi, rey", 
+          "Arafueee", 
+          "Experto en chocolatada",
+          "Mandar fruta"
+        ] 
+      });
+    }
     
   } catch (e) {
     console.error('Exception:', e);
     return res.status(500).json({ error: `Error interno: ${e.message}` });
   }
-}
+} // <-- Fin del archivo
