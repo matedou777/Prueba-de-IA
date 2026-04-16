@@ -29,8 +29,8 @@ Respondé ÚNICAMENTE con un objeto JSON sin markdown ni explicaciones:
 {"categoryName":"Nombre","words":["Palabra1","Palabra2",...]}`;
 
   try {
-    const r = await fetch(
-  `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+   const r = await fetch(
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
