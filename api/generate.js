@@ -1,5 +1,20 @@
-module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+// 1. La lista VIP: tu dominio oficial y tu entorno de prueba
+  const allowedOrigins = [
+    'https://prueba-de-ia.vercel.app',
+    'http://localhost:3000'          
+  ];
+  
+  const origin = req.headers.origin;
+
+  // 2. El Patovica: verificamos quién quiere entrar
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (origin) {
+    // Rebotado en la puerta
+    return res.status(403).json({ error: 'Acceso denegado. No te podés colgar de esta API.' });
+  }
+
+  // 3. Permisos estándar
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
