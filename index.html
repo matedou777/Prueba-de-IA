@@ -8,11 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
   <!-- GOOGLE ADSENSE — descomentar cuando esté aprobado
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXX" crossorigin="anonymous"></script>
   -->
-
 <style>
 /* ── Variables ───────────────────────────────────────────── */
 :root {
@@ -403,6 +401,54 @@ label {
 @media (max-width: 600px) {
   .card { padding: 1.1rem; }
 }
+
+/* ── IA Generator ────────────────────────────────────────── */
+.ai-card {
+  background: var(--surface);
+  border: 1px dashed #3a3a50;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.ai-card-title {
+  font-family: var(--font-head);
+  font-size: 1.4rem;
+  color: #f4a261;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.05em;
+}
+.ai-card-subtitle { color: var(--muted); font-size: 0.82rem; margin-bottom: 1rem; }
+.ai-preview {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 0.75rem;
+}
+.ai-preview-name {
+  font-family: var(--font-head);
+  font-size: 1.2rem;
+  color: #f4a261;
+  margin-bottom: 0.5rem;
+}
+.ai-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.75rem; }
+.ai-tag {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.78rem;
+  color: var(--text);
+}
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -500,6 +546,33 @@ label {
           <button class="btn btn-danger btn-sm" onclick="openDeleteCategoryModal()">🗑️ Eliminar categoría</button>
         </div>
       </div>
+    </div>
+
+
+    <!-- IA: Generar categoría -->
+    <div class="ai-card">
+      <div class="ai-card-title">✨ Generar categoría con IA</div>
+      <div class="ai-card-subtitle">Describí con tus palabras qué tipo de categoría querés y la IA la crea</div>
+
+      <div class="field">
+        <label>Descripción / Prompt</label>
+        <input type="text" id="ai-prompt" placeholder="Ej: palabras relacionadas con el espacio exterior" />
+      </div>
+      <div class="field" style="max-width:140px;">
+        <label>Cantidad de palabras</label>
+        <input type="number" id="ai-count" value="15" min="5" max="50" />
+      </div>
+      <button class="btn btn-primary btn-sm" id="ai-btn" onclick="generateCategory()">✨ Generar</button>
+
+      <div id="ai-preview" class="ai-preview hidden">
+        <div class="ai-preview-name" id="ai-preview-name"></div>
+        <div class="ai-tags" id="ai-preview-tags"></div>
+        <div class="flex gap-sm">
+          <button class="btn btn-success btn-sm" onclick="saveAICategory()">✓ Guardar categoría</button>
+          <button class="btn btn-ghost btn-sm" onclick="dismissAI()">Descartar</button>
+        </div>
+      </div>
+      <div id="ai-error" class="text-muted hidden" style="margin-top:0.5rem;font-size:0.82rem;"></div>
     </div>
 
     <button class="btn btn-primary btn-lg btn-full" onclick="startGame()" style="margin-bottom:2rem;">
@@ -1105,6 +1178,74 @@ function launchConfetti() {
 function goToSetup() {
   showPage('page-setup');
 }
+
+/* ── IA: Generar categoría ───────────────────────────────── */
+let aiPendingName  = '';
+let aiPendingWords = [];
+
+async function generateCategory() {
+  const prompt = document.getElementById('ai-prompt').value.trim();
+  const count  = parseInt(document.getElementById('ai-count').value) || 15;
+  const btn    = document.getElementById('ai-btn');
+  const errEl  = document.getElementById('ai-error');
+
+  if (!prompt) { toast('Escribí una descripción primero', 'error'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Generando...';
+  document.getElementById('ai-preview').classList.add('hidden');
+  errEl.classList.add('hidden');
+
+  try {
+    const res  = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, count }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      const msg = data.error === 'NO_API_KEY'
+        ? '⚠️ Configurá GEMINI_API_KEY en Vercel → Settings → Environment Variables'
+        : (data.error || 'Error al generar');
+      errEl.textContent = msg;
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    aiPendingName  = data.categoryName || prompt;
+    aiPendingWords = data.words || [];
+
+    document.getElementById('ai-preview-name').textContent = aiPendingName;
+    document.getElementById('ai-preview-tags').innerHTML =
+      aiPendingWords.map(w => `<div class="ai-tag">${escapeHtml(w)}</div>`).join('');
+    document.getElementById('ai-preview').classList.remove('hidden');
+
+  } catch (e) {
+    errEl.textContent = 'No se pudo conectar con el servidor';
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✨ Generar';
+  }
+}
+
+function saveAICategory() {
+  if (!aiPendingWords.length) return;
+  Storage.addWordsToCategory(aiPendingName, aiPendingWords);
+  renderCategoryBadges();
+  updateCategorySelects();
+  toggleCategory(aiPendingName);
+  dismissAI();
+  toast(`Categoría "${aiPendingName}" guardada con ${aiPendingWords.length} palabras`, 'success');
+}
+
+function dismissAI() {
+  aiPendingName = ''; aiPendingWords = [];
+  document.getElementById('ai-preview').classList.add('hidden');
+  document.getElementById('ai-prompt').value = '';
+}
+
 </script>
 
 </body>
