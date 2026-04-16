@@ -42,12 +42,6 @@ Respondé ÚNICAMENTE con un objeto JSON sin markdown ni explicaciones:
             },
           ],
           generationConfig: { temperature: 0.8, maxOutputTokens: 600 },
-          safetySettings: [
-            {
-              category: 'HARM_CATEGORY_UNSPECIFIED',
-              threshold: 'BLOCK_NONE',
-            },
-          ],
         }),
       }
     );
