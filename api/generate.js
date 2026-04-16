@@ -30,28 +30,52 @@ Respondé ÚNICAMENTE con un objeto JSON sin markdown ni explicaciones:
 
   try {
     const r = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: `${systemPrompt}\n\nDescripción del usuario: ${prompt.trim()}` }] }],
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: `${systemPrompt}\n\nDescripción del usuario: ${prompt.trim()}` }],
+            },
+          ],
           generationConfig: { temperature: 0.8, maxOutputTokens: 600 },
+          safetySettings: [
+            {
+              category: 'HARM_CATEGORY_UNSPECIFIED',
+              threshold: 'BLOCK_NONE',
+            },
+          ],
         }),
       }
     );
 
-    if (!r.ok) return res.status(502).json({ error: 'Error al contactar Gemini' });
+    if (!r.ok) {
+      const errData = await r.json();
+      console.error('Gemini error:', errData);
+      return res.status(502).json({ error: `Error al contactar Gemini: ${errData?.error?.message || 'Desconocido'}` });
+    }
 
     const data = await r.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    
+    if (!text) {
+      return res.status(502).json({ error: 'Gemini no devolvió contenido' });
+    }
+
     const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return res.status(502).json({ error: 'Respuesta inesperada de Gemini' });
+    if (!match) {
+      console.error('No JSON found in response:', text);
+      return res.status(502).json({ error: 'Respuesta inesperada de Gemini' });
+    }
 
     const parsed = JSON.parse(match[0]);
     return res.status(200).json({ categoryName: parsed.categoryName, words: parsed.words });
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ error: 'Error interno' });
+    console.error('Exception:', e);
+    return res.status(500).json({ error: `Error interno: ${e.message}` });
   }
+}
 }
