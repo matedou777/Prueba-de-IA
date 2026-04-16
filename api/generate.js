@@ -1,7 +1,3 @@
-// api/generate.js — Vercel Serverless Function
-// POST /api/generate
-// Body: { prompt: string, count: number }
-
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -29,9 +25,27 @@ Respondé ÚNICAMENTE con un objeto JSON sin markdown ni explicaciones:
 {"categoryName":"Nombre","words":["Palabra1","Palabra2",...]}`;
 
   try {
-const r = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key=${apiKey}`,
+    // 1. AUTO-DESCUBRIMIENTO: Le preguntamos a Google qué modelos tenés habilitados
+    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+    const listData = await listRes.json();
+    
+    if (!listData.models) {
+      return res.status(502).json({ error: 'La API Key es inválida o no tiene acceso a la API.' });
+    }
 
+    // Buscamos el primer modelo que sirva para generar texto (que sea flash o pro)
+    const validModel = listData.models.find(m => 
+      m.supportedGenerationMethods?.includes('generateContent') && 
+      m.name.includes('gemini')
+    );
+
+    if (!validModel) {
+      return res.status(502).json({ error: 'Tu cuenta de Google no tiene modelos de texto habilitados.' });
+    }
+
+    // 2. GENERACIÓN: Usamos el nombre exacto que Google nos acaba de dar (ej: validModel.name)
+    const r = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/${validModel.name}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -42,32 +56,30 @@ const r = await fetch(
               parts: [{ text: `${systemPrompt}\n\nDescripción del usuario: ${prompt.trim()}` }],
             },
           ],
-          generationConfig: { temperature: 0.8, maxOutputTokens: 600 },
+          generationConfig: { temperature: 0.8, maxOutputTokens: 600, responseMimeType: "application/json" }
         }),
       }
     );
 
-    if (!r.ok) {
-      const errData = await r.json();
-      console.error('Gemini error:', errData);
-      return res.status(502).json({ error: `Error al contactar Gemini: ${errData?.error?.message || 'Desconocido'}` });
+    const data = await r.json();
+    
+    // Si la API tira un error interno, lo mostramos
+    if (data.error) {
+       return res.status(502).json({ error: `Google API Error: ${data.error.message}` });
     }
 
-    const data = await r.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     
     if (!text) {
       return res.status(502).json({ error: 'Gemini no devolvió contenido' });
     }
 
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) {
-      console.error('No JSON found in response:', text);
-      return res.status(502).json({ error: 'Respuesta inesperada de Gemini' });
-    }
-
-    const parsed = JSON.parse(match[0]);
+    // Limpiamos el texto por si la IA le agrega los backticks de Markdown
+    const cleanText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(cleanText);
+    
     return res.status(200).json({ categoryName: parsed.categoryName, words: parsed.words });
+    
   } catch (e) {
     console.error('Exception:', e);
     return res.status(500).json({ error: `Error interno: ${e.message}` });
