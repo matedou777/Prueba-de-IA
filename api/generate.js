@@ -30,7 +30,7 @@ Respondé ÚNICAMENTE con un objeto JSON sin markdown ni explicaciones:
 
   try {
 const r = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent?key=${apiKey}`,
 
       {
         method: 'POST',
