@@ -78,4 +78,3 @@ Respondé ÚNICAMENTE con un objeto JSON sin markdown ni explicaciones:
     return res.status(500).json({ error: `Error interno: ${e.message}` });
   }
 }
-}
