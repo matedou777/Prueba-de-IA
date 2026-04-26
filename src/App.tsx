@@ -302,7 +302,13 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: aiPrompt, count: aiCount }),
       });
-      const data = await res.json();
+      const textResponse = await res.text();
+      let data;
+      try {
+         data = JSON.parse(textResponse);
+      } catch (parseError) {
+         throw new Error(`Error del servidor (o fallo de Vercel/Config): ${textResponse.slice(0, 50)}`);
+      }
       if (!res.ok) throw new Error(data.error || 'Error de IA');
       setAiPreview({ name: data.categoryName, words: data.words });
     } catch (e: any) {
@@ -853,3 +859,4 @@ export default function App() {
     </div>
   );
 }
+
