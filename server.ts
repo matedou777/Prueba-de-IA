@@ -2,14 +2,13 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+const app = express();
+const PORT = 3000;
 
-  app.use(express.json());
+app.use(express.json());
 
-  // API route for generating categories with Gemini
-  app.post("/api/generate", async (req, res) => {
+// API route for generating categories with Gemini
+app.post("/api/generate", async (req, res) => {
     const { prompt, count = 15 } = req.body || {};
     
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 2) {
@@ -120,23 +119,28 @@ Respondé ÚNICAMENTE con un objeto JSON válido sin saltos de línea internos:
   });
 
   // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
+  if (process.env.NODE_ENV !== "production" && process.env.VERCEL !== "1") {
+    createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
+    }).then((vite) => {
+      app.use(vite.middlewares);
+      app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+      });
     });
-    app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
+    // Check if we are running locally in production mode or on Vercel
+    if (process.env.VERCEL !== "1") {
+      const distPath = path.join(process.cwd(), 'dist');
+      app.use(express.static(distPath));
+      app.get('*', (req, res) => {
+        res.sendFile(path.join(distPath, 'index.html'));
+      });
+      app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+      });
+    }
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-}
-
-startServer();
+export default app;
