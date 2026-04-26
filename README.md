@@ -1,54 +1,20 @@
-# 🎭 El Impostor — Juego social de mesa (web)
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-**El Impostor** es un juego social para grupos que se juega desde el navegador.  
-Un jugador (o varios) no conoce la palabra secreta y debe disimular para no ser descubierto.  
-Ideal para juntadas, previas, asados o viajes con amigos. 🍻
+# Run and deploy your AI Studio app
 
----
+This contains everything you need to run your app locally.
 
-## 🚀 Demo
-Podés abrir el archivo `index.html` directamente en tu navegador.  
-(No requiere servidor ni build.)
+View your app in AI Studio: https://ai.studio/apps/3089d724-7eed-465c-bb4a-fd823a67b219
 
----
+## Run Locally
 
-## ✨ Características
+**Prerequisites:**  Node.js
 
-- 👥 Cantidad de jugadores configurable  
-- 🕵️ Cantidad de impostores configurable  
-- 📂 Categorías de palabras (multi-selección)  
-- ➕ Crear categorías personalizadas  
-- ✏️ Agregar palabras a categorías existentes  
-- 🗑️ Eliminar categorías creadas por el usuario  
-- 💾 Persistencia en `localStorage`  
-- 🎴 Sistema de revelado uno por uno (modo privacidad)  
-- 🎉 Animación final de confetti  
-- 📱 Diseño responsive (funciona en celular)  
-- ⚡ Todo en un solo archivo HTML (plug & play)
 
----
-
-## 🧩 Cómo jugar
-
-1. Configurá:
-   - Cantidad de jugadores  
-   - Cantidad de impostores  
-   - Categorías de palabras  
-2. Tocá **“¡Comenzar partida!”**  
-3. Cada jugador, por turnos:
-   - Toca la carta  
-   - Ve su palabra (o descubre que es el impostor)  
-   - Pasa el celu al siguiente  
-4. Cuando todos vieron su rol… **¡A jugar!**  
-5. Los jugadores deben describir la palabra sin delatarla.  
-6. El grupo intenta descubrir quién es el impostor. 😈
-
----
-
-## 🛠️ Instalación
-
-No hay instalación:
-
-```bash
-git clone <tu-repo>
-cd el-impostor
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`
