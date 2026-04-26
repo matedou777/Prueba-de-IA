@@ -1,1252 +1,564 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="El Impostor — Juego de mesa social para grupos. ¿Quién es el impostor?" />
-  <title>El Impostor 🎭</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <!-- GOOGLE ADSENSE — descomentar cuando esté aprobado
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXX" crossorigin="anonymous"></script>
-  -->
-<style>
-/* ── Variables ───────────────────────────────────────────── */
-:root {
-  --bg:        #0d0d0f;
-  --surface:   #16161a;
-  --surface2:  #1e1e24;
-  --border:    #2a2a35;
-  --accent:    #e63946;
-  --accent2:   #ff6b6b;
-  --text:      #e8e8f0;
-  --muted:     #6b6b80;
-  --success:   #2ec27e;
-  --radius:    12px;
-  --font-head: 'Bebas Neue', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
-}
-
-/* ── Reset ───────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; scroll-behavior: smooth; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-body);
-  min-height: 100dvh;
-  line-height: 1.6;
-  overflow-x: hidden;
-}
-
-/* ── Layout ──────────────────────────────────────────────── */
-.container { max-width: 900px; margin: 0 auto; padding: 0 1.25rem; }
-
-.page { display: none; }
-.page.active { display: block; animation: fadeIn 0.3s ease; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Hero ────────────────────────────────────────────────── */
-.hero { text-align: center; padding: 3rem 1rem 2rem; }
-.hero-logo {
-  font-family: var(--font-head);
-  font-size: clamp(3.5rem, 12vw, 7rem);
-  color: var(--text);
-  letter-spacing: 0.06em;
-  text-shadow: 0 0 60px rgba(230,57,70,0.4);
-}
-.hero-logo span { color: var(--accent); }
-.hero-subtitle {
-  color: var(--muted);
-  font-size: 0.95rem;
-  margin-top: 0.5rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-/* ── Cards ───────────────────────────────────────────────── */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  margin-bottom: 1.25rem;
-}
-.card-title {
-  font-family: var(--font-head);
-  font-size: 1.4rem;
-  color: var(--accent);
-  margin-bottom: 1rem;
-  letter-spacing: 0.05em;
-}
-
-/* ── Form elements ───────────────────────────────────────── */
-input[type="text"], input[type="number"], select, textarea {
-  width: 100%;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: 0.95rem;
-  padding: 0.65rem 0.9rem;
-  outline: none;
-  transition: border-color 0.2s;
-}
-input:focus, select:focus, textarea:focus { border-color: var(--accent); }
-input::placeholder, textarea::placeholder { color: var(--muted); }
-select option { background: var(--surface2); }
-label {
-  display: block;
-  font-size: 0.82rem;
-  color: var(--muted);
-  margin-bottom: 0.35rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.field { margin-bottom: 1rem; }
-
-/* ── Buttons ─────────────────────────────────────────────── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 0.95rem;
-  font-weight: 600;
-  padding: 0.7rem 1.4rem;
-  transition: all 0.18s ease;
-  white-space: nowrap;
-}
-.btn-primary  { background: var(--accent); color: #fff; }
-.btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
-.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
-.btn-ghost  { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-.btn-ghost:hover { color: var(--text); border-color: var(--muted); }
-.btn-danger { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
-.btn-danger:hover { background: var(--accent); color: #fff; }
-.btn-sm  { padding: 0.4rem 0.85rem; font-size: 0.82rem; }
-.btn-lg  { padding: 0.95rem 2rem; font-size: 1.05rem; font-weight: 700; }
-.btn-full { width: 100%; }
-
-/* ── Number control ──────────────────────────────────────── */
-.number-control { display: flex; align-items: center; gap: 0.5rem; }
-.number-control input { text-align: center; width: 70px; flex: none; }
-.number-control .btn  { width: 38px; height: 38px; padding: 0; font-size: 1.2rem; flex: none; }
-
-/* ── Player list ─────────────────────────────────────────── */
-.player-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-.player-list::-webkit-scrollbar { width: 4px; }
-.player-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-.player-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.5rem 0.75rem;
-  animation: slideIn 0.18s ease;
-}
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-8px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-.player-number { font-family: var(--font-head); font-size: 1rem; color: var(--accent); min-width: 26px; }
-.player-item input {
-  border: none !important;
-  background: transparent !important;
-  padding: 0.2rem 0 !important;
-  flex: 1;
-  width: auto;
-  box-shadow: none !important;
-}
-
-/* ── Category badges ─────────────────────────────────────── */
-.cat-badges-wrap { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-.cat-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.82rem;
-  padding: 0.3rem 0.75rem;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  cursor: pointer;
-  transition: all 0.15s;
-  user-select: none;
-}
-.cat-badge:hover { border-color: var(--accent); color: var(--accent); background: rgba(230,57,70,0.06); }
-.cat-badge.selected { border-color: var(--accent); color: var(--accent); background: rgba(230,57,70,0.12); font-weight: 600; }
-.cat-badge.is-custom { border-style: dashed; }
-
-/* ── Divider ─────────────────────────────────────────────── */
-.divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
-
-/* ── Toast ───────────────────────────────────────────────── */
-#toast-container {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10000;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: center;
-  pointer-events: none;
-}
-.toast {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.65rem 1.2rem;
-  font-size: 0.9rem;
-  color: var(--text);
-  animation: toastIn 0.25s ease;
-  white-space: nowrap;
-}
-.toast.success { border-color: var(--success); color: var(--success); }
-.toast.error   { border-color: var(--accent);  color: var(--accent); }
-@keyframes toastIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Ad slot placeholder ─────────────────────────────────── */
-.ad-slot {
-  background: var(--surface);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius);
-  height: 90px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--muted);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 1.25rem;
-}
-
-/* ── Modals ──────────────────────────────────────────────── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.78);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  animation: fadeIn 0.2s ease;
-}
-.modal-box {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  width: 100%;
-  max-width: 420px;
-}
-.modal-title {
-  font-family: var(--font-head);
-  font-size: 1.5rem;
-  color: var(--accent);
-  margin-bottom: 1rem;
-  letter-spacing: 0.04em;
-}
-
-/* ── Reveal screen ───────────────────────────────────────── */
-.reveal-wrap {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1.5rem;
-  text-align: center;
-}
-.reveal-progress {
-  font-size: 0.82rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  margin-bottom: 2rem;
-}
-.player-turn-name {
-  font-family: var(--font-head);
-  font-size: clamp(2rem, 8vw, 4rem);
-  color: var(--text);
-  margin-bottom: 0.4rem;
-}
-.reveal-instruction { color: var(--muted); font-size: 0.9rem; margin-bottom: 2.5rem; }
-
-/* Flip card */
-.word-card {
-  width: min(320px, 88vw);
-  height: 190px;
-  perspective: 1000px;
-  margin: 0 auto 2.5rem;
-  cursor: pointer;
-}
-.word-card-inner {
-  width: 100%; height: 100%;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
-  border-radius: var(--radius);
-}
-.word-card.flipped .word-card-inner { transform: rotateY(180deg); }
-/* Mientras la carta está cerrando (no .flipped), el back no debe ser legible */
-.word-card:not(.flipped) .word-card-back {
-  visibility: hidden;
-}
-.word-card.flipped .word-card-back {
-  visibility: visible;
-}
-.word-card-front, .word-card-back {
-  position: absolute; inset: 0;
-  border-radius: var(--radius);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  gap: 0.5rem;
-}
-.word-card-front { background: var(--surface); border: 1px solid var(--border); }
-.word-card-front-icon { font-size: 2.5rem; opacity: 0.35; }
-.word-card-front-text { color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.12em; }
-.word-card-back {
-  background: var(--surface);
-  border: 2px solid var(--accent);
-  transform: rotateY(180deg);
-  box-shadow: 0 0 40px rgba(230,57,70,0.2);
-  padding: 1.5rem;
-}
-.word-display {
-  font-family: var(--font-head);
-  font-size: clamp(1.8rem, 7vw, 3.2rem);
-  color: var(--text);
-  letter-spacing: 0.04em;
-  text-align: center;
-}
-.word-display.is-impostor {
-  color: var(--accent);
-  font-size: clamp(1.2rem, 4vw, 1.8rem);
-  letter-spacing: 0.06em;
-}
-.word-category-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
-
-/* ── Start / ¡A jugar! ───────────────────────────────────── */
-.start-screen {
-  min-height: 100dvh;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  text-align: center; padding: 2rem;
-}
-.start-big-text {
-  font-family: var(--font-head);
-  font-size: clamp(4rem, 16vw, 10rem);
-  color: var(--text);
-  line-height: 0.9;
-  animation: pulseGlow 2s ease-in-out infinite;
-}
-.start-big-text span { color: var(--accent); }
-@keyframes pulseGlow {
-  0%,100% { text-shadow: 0 0 60px rgba(230,57,70,0.35); }
-  50%      { text-shadow: 0 0 100px rgba(230,57,70,0.65); }
-}
-.start-subtitle {
-  color: var(--muted); font-size: 0.9rem;
-  margin-top: 1rem; margin-bottom: 2.5rem;
-  letter-spacing: 0.12em; text-transform: uppercase;
-}
-.confetti-wrap { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
-.confetti-dot { position: absolute; animation: fall linear infinite; opacity: 0; }
-@keyframes fall {
-  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-}
-
-/* ── Utilities ───────────────────────────────────────────── */
-.flex { display: flex; }
-.flex-wrap { flex-wrap: wrap; }
-.gap-sm { gap: 0.5rem; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.mt-sm { margin-top: 0.5rem; }
-.text-muted { color: var(--muted); font-size: 0.85rem; }
-.hidden { display: none !important; }
-
-@media (max-width: 600px) {
-  .card { padding: 1.1rem; }
-}
-
-/* ── IA Generator ────────────────────────────────────────── */
-.ai-card {
-  background: var(--surface);
-  border: 1px dashed #3a3a50;
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  margin-bottom: 1.25rem;
-}
-.ai-card-title {
-  font-family: var(--font-head);
-  font-size: 1.4rem;
-  color: #f4a261;
-  margin-bottom: 0.25rem;
-  letter-spacing: 0.05em;
-}
-.ai-card-subtitle { color: var(--muted); font-size: 0.82rem; margin-bottom: 1rem; }
-.ai-preview {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1rem;
-  margin-top: 0.75rem;
-}
-.ai-preview-name {
-  font-family: var(--font-head);
-  font-size: 1.2rem;
-  color: #f4a261;
-  margin-bottom: 0.5rem;
-}
-.ai-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.75rem; }
-.ai-tag {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 0.2rem 0.6rem;
-  font-size: 0.78rem;
-  color: var(--text);
-}
-.spinner {
-  width: 16px; height: 16px;
-  border: 2px solid rgba(255,255,255,0.25);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  display: inline-block;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-</style>
-</head>
-<body>
-
-<!-- TOASTS -->
-<div id="toast-container"></div>
-
-<!-- ══════════════════════════════════════════════════════════
-     PÁGINA 1: CONFIGURACIÓN
-══════════════════════════════════════════════════════════ -->
-<div id="page-setup" class="page active">
-
-  <div class="hero">
-    <div class="hero-logo">EL <span>IMPOSTOR</span></div>
-    <div class="hero-subtitle">¿Quién no sabe la palabra?</div>
-  </div>
-
-  <!-- Banner publicitario — reemplazar con ins de AdSense cuando esté aprobado -->
-  <div class="container">
-    <div class="ad-slot">Publicidad</div>
-  </div>
-
-  <div class="container">
-
-    <!-- 1. Jugadores -->
-    <div class="card">
-      <div class="card-title">👥 Jugadores</div>
-
-      <div class="field">
-        <label>Cantidad de jugadores</label>
-        <div class="number-control">
-          <button class="btn btn-secondary" onclick="changePlayerCount(-1)">−</button>
-          <input type="number" id="player-count" value="4" min="2" />
-          <button class="btn btn-secondary" onclick="changePlayerCount(1)">+</button>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Nombres</label>
-        <div class="player-list" id="player-list"></div>
-        <button class="btn btn-ghost btn-sm mt-sm" onclick="randomizeNames()">🎲 Aleatorizar nombres</button>
-      </div>
-    </div>
-
-    <!-- 2. Impostores -->
-    <div class="card">
-      <div class="card-title">🕵️ Impostores</div>
-      <div class="field">
-        <label>Cantidad de impostores</label>
-        <div class="number-control">
-          <button class="btn btn-secondary" onclick="changeImpostorCount(-1)">−</button>
-          <input type="number" id="impostor-count" value="1" min="1" />
-          <button class="btn btn-secondary" onclick="changeImpostorCount(1)">+</button>
-        </div>
-        <div class="text-muted mt-sm" id="impostor-hint">1 impostor en partida de 4 jugadores</div>
-      </div>
-    </div>
-
-    <!-- 3. Categorías -->
-    <div class="card">
-      <div class="card-title">📂 Categoría de palabras</div>
-
-      <div class="field">
-        <label>Categorías (podés elegir varias o todas)</label>
-        <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;">
-          <button class="btn btn-ghost btn-sm" onclick="selectAllCategories()">&#10022; Todas</button>
-          <button class="btn btn-ghost btn-sm" onclick="clearCategorySelection()">&#10005; Ninguna</button>
-        </div>
-        <div class="cat-badges-wrap" id="category-badges" style="max-height:220px;overflow-y:auto;"></div>
-        <div class="text-muted mt-sm" id="category-hint"></div>
-      </div>
-
-      <hr class="divider" />
-
-      <div class="field">
-        <label>Agregar palabras a categoría existente</label>
-        <div class="flex gap-sm">
-          <select id="add-to-category-select" style="flex:1"></select>
-          <button class="btn btn-secondary btn-sm" onclick="openAddWordsModal()">+ Agregar</button>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Crear nueva categoría</label>
-        <div class="flex gap-sm">
-          <input type="text" id="new-cat-name" placeholder="Ej: Bandas de rock" style="flex:1" />
-          <button class="btn btn-secondary btn-sm" onclick="createNewCategory()">Crear</button>
-        </div>
-      </div>
-
-      <div id="delete-cat-section" class="hidden">
-        <hr class="divider" />
-        <div class="flex gap-sm items-center justify-between">
-          <span class="text-muted">Categorías personalizadas</span>
-          <button class="btn btn-danger btn-sm" onclick="openDeleteCategoryModal()">🗑️ Eliminar categoría</button>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- IA: Generar categoría -->
-    <div class="ai-card">
-      <div class="ai-card-title">✨ Generar categoría con IA</div>
-      <div class="ai-card-subtitle">Describí con tus palabras qué tipo de categoría querés y la IA la crea</div>
-
-      <div class="field">
-        <label>Descripción / Prompt</label>
-        <input type="text" id="ai-prompt" placeholder="Ej: palabras relacionadas con el espacio exterior" />
-      </div>
-      <div class="field" style="max-width:140px;">
-        <label>Cantidad de palabras</label>
-        <input type="number" id="ai-count" value="15" min="5" max="50" />
-      </div>
-      <button class="btn btn-primary btn-sm" id="ai-btn" onclick="generateCategory()">✨ Generar</button>
-
-      <div id="ai-preview" class="ai-preview hidden">
-        <div class="ai-preview-name" id="ai-preview-name"></div>
-        <div class="ai-tags" id="ai-preview-tags"></div>
-        <div class="flex gap-sm">
-          <button class="btn btn-success btn-sm" onclick="saveAICategory()">✓ Guardar categoría</button>
-          <button class="btn btn-ghost btn-sm" onclick="dismissAI()">Descartar</button>
-        </div>
-      </div>
-      <div id="ai-error" class="text-muted hidden" style="margin-top:0.5rem;font-size:0.82rem;"></div>
-    </div>
-
-    <button class="btn btn-primary btn-lg btn-full" onclick="startGame()" style="margin-bottom:2rem;">
-      🎭 ¡Comenzar partida!
-    </button>
-
-  </div>
-</div><!-- /page-setup -->
-
-
-<!-- ══════════════════════════════════════════════════════════
-     PÁGINA 2: REVELAR ROL
-══════════════════════════════════════════════════════════ -->
-<div id="page-reveal" class="page">
-  <div class="reveal-wrap">
-    <div class="reveal-progress" id="reveal-progress">Jugador 1 de 4</div>
-    <div class="player-turn-name" id="reveal-player-name">Jugador</div>
-    <div class="reveal-instruction">Toca la carta para ver tu palabra</div>
-
-    <div class="word-card" id="word-card" onclick="flipCard()">
-      <div class="word-card-inner">
-        <div class="word-card-front">
-          <div class="word-card-front-icon">🃏</div>
-          <div class="word-card-front-text">Toca para revelar</div>
-        </div>
-        <div class="word-card-back">
-          <div class="word-category-label" id="reveal-category">Categoría</div>
-          <div class="word-display" id="reveal-word">Palabra</div>
-        </div>
-      </div>
-    </div>
-
-    <button class="btn btn-primary btn-lg hidden" id="next-player-btn" onclick="nextPlayer()">
-      Siguiente →
-    </button>
-  </div>
-</div><!-- /page-reveal -->
-
-
-<!-- ══════════════════════════════════════════════════════════
-     PÁGINA 3: ¡A JUGAR!
-══════════════════════════════════════════════════════════ -->
-<div id="page-start" class="page">
-  <div class="confetti-wrap" id="confetti-wrap"></div>
-  <div class="start-screen">
-    <div class="start-big-text">A<br/><span>JUGAR</span></div>
-    <div class="start-subtitle">¡Todos ya vieron su palabra!</div>
-    <button class="btn btn-secondary btn-lg" onclick="goToSetup()" style="position:relative;z-index:1;">
-      ↩ Nueva partida
-    </button>
-  </div>
-</div><!-- /page-start -->
-
-
-<!-- ══════════════════════════════════════════════════════════
-     MODALES
-══════════════════════════════════════════════════════════ -->
-
-<div id="modal-add-words" class="modal-overlay hidden" onclick="closeModalOnOverlay(event,'modal-add-words')">
-  <div class="modal-box">
-    <div class="modal-title">Agregar palabras</div>
-    <div class="field">
-      <label>Categoría</label>
-      <div id="modal-cat-label" style="font-family:var(--font-head);font-size:1.2rem;color:var(--accent);margin-bottom:0.5rem;"></div>
-    </div>
-    <div class="field">
-      <label>Palabras (separadas por coma o salto de línea)</label>
-      <textarea id="modal-words-input" rows="4" placeholder="Manzana, Banana, Kiwi..."></textarea>
-    </div>
-    <div class="flex gap-sm justify-between">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-add-words')">Cancelar</button>
-      <button class="btn btn-primary btn-sm" onclick="saveAddedWords()">Guardar palabras</button>
-    </div>
-  </div>
-</div>
-
-<div id="modal-delete-cat" class="modal-overlay hidden" onclick="closeModalOnOverlay(event,'modal-delete-cat')">
-  <div class="modal-box">
-    <div class="modal-title">Eliminar categoría</div>
-    <div class="field">
-      <label>Categoría a eliminar</label>
-      <select id="modal-delete-cat-select"></select>
-    </div>
-    <div class="text-muted" style="margin-bottom:1rem;">Esta acción no se puede deshacer.</div>
-    <div class="flex gap-sm justify-between">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-delete-cat')">Cancelar</button>
-      <button class="btn btn-danger btn-sm" onclick="confirmDeleteCategory()">Eliminar</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ══════════════════════════════════════════════════════════
-     SCRIPTS — todo inline, orden garantizado:
-     1. DEFAULT_CATEGORIES  →  2. Storage  →  3. Game  →  4. UI
-══════════════════════════════════════════════════════════ -->
-<script>
-'use strict';
-
-/* ─────────────────────────────────────────────────────────
-   1. CATEGORÍAS DEFAULT
-───────────────────────────────────────────────────────── */
-const DEFAULT_CATEGORIES = {
-  "Frutas":       ["Manzana","Banana","Mango","Fresa","Uva","Melón","Sandía","Kiwi","Pera","Durazno","Naranja","Limón","Piña","Cereza","Higo"],
-  "Animales":     ["León","Tigre","Elefante","Jirafa","Cebra","Gorila","Pingüino","Cocodrilo","Delfín","Águila","Lobo","Zorro","Oso","Hipopótamo","Flamenco"],
-  "Países":       ["Argentina","Brasil","Francia","Japón","Alemania","Australia","Egipto","México","Canadá","India","Italia","Rusia","China","España","Sudáfrica"],
-  "Deportes":     ["Fútbol","Tenis","Natación","Boxeo","Ciclismo","Volleyball","Rugby","Golf","Atletismo","Esquí","Surf","Ajedrez","Béisbol","Baloncesto","Karate"],
-  "Profesiones":  ["Médico","Bombero","Piloto","Maestro","Chef","Astronauta","Abogado","Arquitecto","Fotógrafo","Músico","Enfermero","Detective","Ingeniero","Actor","Científico"],
-  "Películas":    ["Titanic","Avatar","Matrix","Joker","Interstellar","Coco","Up","Frozen","Shrek","Gladiador","El Padrino","Toy Story","Avengers","El Rey León","Parasite"],
-  "Comidas":      ["Pizza","Sushi","Hamburguesa","Tacos","Pasta","Asado","Empanada","Ramen","Paella","Curry","Hot Dog","Crepe","Tortilla","Ceviche","Fondue"],
-  "Instrumentos": ["Guitarra","Piano","Violín","Batería","Trompeta","Flauta","Saxofón","Bajo","Arpa","Acordeón","Clarinete","Ukulele","Cello","Oboe","Teclado"],
-  "Superhéroes":  ["Superman","Batman","Spiderman","Wonder Woman","Iron Man","Thor","Hulk","Flash","Aquaman","Pantera Negra","Capitán América","Wolverine","Deadpool","Scarlet Witch","Doctor Strange"],
-  "Videojuegos":  ["Minecraft","Fortnite","Mario","Zelda","Pokémon","FIFA","GTA","Among Us","Roblox","Tetris","Pac-Man","Sonic","Halo","Overwatch","The Sims"],
-};
-
-/* ─────────────────────────────────────────────────────────
-   2. STORAGE — categorías custom en localStorage
-───────────────────────────────────────────────────────── */
-const STORAGE_KEY = 'impostor_custom_categories';
-
-const Storage = {
-  getCustomCategories() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch { return {}; }
-  },
-
-  saveCustomCategories(cats) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cats)); } catch {}
-  },
-
-  addWordsToCategory(categoryName, words) {
-    const custom = this.getCustomCategories();
-    if (!custom[categoryName]) custom[categoryName] = [];
-    const existing = new Set(custom[categoryName].map(w => w.toLowerCase()));
-    for (const w of words) {
-      const trimmed = String(w).trim();
-      if (trimmed && !existing.has(trimmed.toLowerCase())) {
-        custom[categoryName].push(trimmed);
-        existing.add(trimmed.toLowerCase());
-      }
-    }
-    this.saveCustomCategories(custom);
-  },
-
-  deleteCustomCategory(categoryName) {
-    const custom = this.getCustomCategories();
-    delete custom[categoryName];
-    this.saveCustomCategories(custom);
-  },
-
-  // Fusiona defaults + custom sin duplicados
-  getAllCategories() {
-    const custom = this.getCustomCategories();
-    const merged = {};
-    for (const [cat, words] of Object.entries(DEFAULT_CATEGORIES)) {
-      merged[cat] = [...words];
-    }
-    for (const [cat, words] of Object.entries(custom)) {
-      if (merged[cat]) {
-        const existing = new Set(merged[cat].map(w => w.toLowerCase()));
-        for (const w of words) {
-          if (!existing.has(w.toLowerCase())) merged[cat].push(w);
-        }
-      } else {
-        merged[cat] = [...words];
-      }
-    }
-    return merged;
-  },
-
-  isCustomCategory(name) {
-    return !!this.getCustomCategories()[name] && !DEFAULT_CATEGORIES[name];
-  },
-};
-
-/* ─────────────────────────────────────────────────────────
-   3. GAME — asignación de roles e impostor
-───────────────────────────────────────────────────────── */
-const Game = {
-  state: { players: [], word: '', category: '', currentPlayerIndex: 0 },
-
-  init({ playerNames, impostorCount, category, word }) {
-    const players = playerNames.map(name => ({ name, isImpostor: false }));
-
-    // Fisher-Yates shuffle de índices para elegir impostores al azar
-    const indices = players.map((_, i) => i);
-    for (let i = indices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [indices[i], indices[j]] = [indices[j], indices[i]];
-    }
-    for (let i = 0; i < impostorCount; i++) {
-      players[indices[i]].isImpostor = true;
-    }
-
-    this.state = { players, word, category, currentPlayerIndex: 0 };
-  },
-
-  getCurrentPlayer() {
-    return this.state.players[this.state.currentPlayerIndex];
-  },
-
-  // Avanza al siguiente. Retorna true si quedan jugadores, false si ya terminaron.
-  nextPlayer() {
-    this.state.currentPlayerIndex++;
-    return this.state.currentPlayerIndex < this.state.players.length;
-  },
-
-  pickWord(category, allCategories) {
-    const words = allCategories[category];
-    if (!words || words.length === 0) return null;
-    return words[Math.floor(Math.random() * words.length)];
-  },
-};
-
-/* ─────────────────────────────────────────────────────────
-   4. UI
-───────────────────────────────────────────────────────── */
-const selectedCategories = new Set(); // multi-select
-let addingWordsToCategory = '';
-let cardFlipped          = false;
-
-// Init al cargar el DOM
-document.addEventListener('DOMContentLoaded', () => {
-  updatePlayerList();
-  renderCategoryBadges();
-  updateCategorySelects();
-  // Auto-seleccionar la primera categoría
-  const first = Object.keys(Storage.getAllCategories())[0];
-  if (first) toggleCategory(first);
-});
-
-/* Navegación */
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0, 0);
-}
-
-/* Toast */
-function toast(msg, type) {
-  const el = document.createElement('div');
-  el.className = type ? `toast ${type}` : 'toast';
-  el.textContent = msg;
-  document.getElementById('toast-container').appendChild(el);
-  setTimeout(() => el.remove(), 3000);
-}
-
-/* Helpers */
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-/* ── Jugadores ────────────────────────────────────────────── */
-function getPlayerCount() {
-  return Math.max(2, parseInt(document.getElementById('player-count').value) || 4);
-}
-
-function changePlayerCount(delta) {
-  const input = document.getElementById('player-count');
-  const next  = Math.max(2, getPlayerCount() + delta);
-  input.value = next;
-
-  // Ajustar impostores si quedaron inválidos
-  const impInput = document.getElementById('impostor-count');
-  const imp = parseInt(impInput.value) || 1;
-  if (imp >= next) {
-    impInput.value = next - 1;
-    toast(`Impostores ajustados a ${next - 1}`, '');
-  }
-  updatePlayerList();
-}
-
-function changeImpostorCount(delta) {
-  const input   = document.getElementById('impostor-count');
-  const players = getPlayerCount();
-  const next    = (parseInt(input.value) || 1) + delta;
-
-  if (next < 1)       { toast('Mínimo 1 impostor', 'error'); return; }
-  if (next >= players){ toast(`Máximo ${players - 1} impostores para ${players} jugadores`, 'error'); return; }
-
-  input.value = next;
-  updateImpostorHint();
-}
-
-function updateImpostorHint() {
-  const imp = parseInt(document.getElementById('impostor-count').value) || 1;
-  const pl  = getPlayerCount();
-  document.getElementById('impostor-hint').textContent =
-    `${imp} impostor${imp !== 1 ? 'es' : ''} en partida de ${pl} jugador${pl !== 1 ? 'es' : ''}`;
-}
-
-const RANDOM_NAMES = [
-  'Alex','Sam','Jordan','Taylor','Morgan','Casey','Riley','Quinn',
-  'Drew','Blake','Dana','Jamie','Avery','Reese','Skyler','Parker',
-  'Mateo','Sofía','Valentina','Sebastián','Camila','Lucas','Emma','Rodrigo',
-];
-
-function updatePlayerList() {
-  const count  = getPlayerCount();
-  const list   = document.getElementById('player-list');
-  const prev   = [...list.querySelectorAll('input')].map(i => i.value);
-
-  list.innerHTML = '';
-  for (let i = 0; i < count; i++) {
-    const val  = prev[i] !== undefined ? prev[i] : `Jugador ${i + 1}`;
-    const item = document.createElement('div');
-    item.className = 'player-item';
-    item.innerHTML =
-      `<span class="player-number">${i + 1}</span>` +
-      `<input type="text" value="${escapeHtml(val)}" placeholder="Jugador ${i + 1}" />` +
-      `<button class="btn btn-ghost btn-sm" onclick="clearPlayerInput(this)" title="Borrar">✕</button>`;
-    list.appendChild(item);
-  }
-  updateImpostorHint();
-}
-
-function clearPlayerInput(btn) {
-  const inp = btn.previousElementSibling;
-  inp.value = '';
-  inp.focus();
-}
-
-function randomizeNames() {
-  const inputs = [...document.querySelectorAll('#player-list input')];
-  const pool   = [...RANDOM_NAMES].sort(() => Math.random() - 0.5);
-  inputs.forEach((inp, i) => { inp.value = pool[i % pool.length]; });
-}
-
-function getPlayerNames() {
-  return [...document.querySelectorAll('#player-list input')]
-    .map((inp, i) => inp.value.trim() || `Jugador ${i + 1}`);
-}
-
-/* ── Categorías ──────────────────────────────────────────── */
-function toggleCategory(name) {
-  if (selectedCategories.has(name)) {
-    selectedCategories.delete(name);
-  } else {
-    selectedCategories.add(name);
-  }
-  updateCategoryBadgesUI();
-  updateCategoryHint();
-}
-
-function selectAllCategories() {
-  const all = Storage.getAllCategories();
-  Object.keys(all).forEach(c => selectedCategories.add(c));
-  updateCategoryBadgesUI();
-  updateCategoryHint();
-}
-
-function clearCategorySelection() {
-  selectedCategories.clear();
-  updateCategoryBadgesUI();
-  updateCategoryHint();
-}
-
-function updateCategoryBadgesUI() {
-  document.querySelectorAll('.cat-badge').forEach(b => {
-    b.classList.toggle('selected', selectedCategories.has(b.dataset.cat));
-  });
-}
-
-function updateCategoryHint() {
-  const n = selectedCategories.size;
-  const hint = document.getElementById('category-hint');
-  if (hint) hint.textContent = n === 0
-    ? 'Ninguna categoría seleccionada'
-    : n === 1
-      ? `1 categoría seleccionada`
-      : `${n} categorías seleccionadas`;
-}
-
-function renderCategoryBadges() {
-  const container = document.getElementById('category-badges');
-  const all = Storage.getAllCategories();
-
-  container.innerHTML = '';
-  for (const cat of Object.keys(all)) {
-    const badge = document.createElement('div');
-    badge.className = 'cat-badge' +
-      (Storage.isCustomCategory(cat) ? ' is-custom' : '') +
-      (selectedCategories.has(cat) ? ' selected' : '');
-    badge.dataset.cat = cat;
-    badge.innerHTML = `${escapeHtml(cat)} <small style="opacity:0.45">${all[cat].length}</small>`;
-    badge.addEventListener('click', () => toggleCategory(cat));
-    container.appendChild(badge);
-  }
-
-  const hasCustom = Object.keys(Storage.getCustomCategories()).length > 0;
-  document.getElementById('delete-cat-section').classList.toggle('hidden', !hasCustom);
-  updateCategoryHint();
-}
-
-function updateCategorySelects() {
-  const all  = Storage.getAllCategories();
-  const opts = Object.keys(all).map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-  document.getElementById('add-to-category-select').innerHTML = opts;
-}
-
-function createNewCategory() {
-  const name = document.getElementById('new-cat-name').value.trim();
-  if (!name) { toast('Escribe un nombre de categoría', 'error'); return; }
-  Storage.addWordsToCategory(name, []);
-  document.getElementById('new-cat-name').value = '';
-  renderCategoryBadges();
-  updateCategorySelects();
-  toggleCategory(name);
-  toast(`Categoría "${name}" creada`, 'success');
-}
-
-/* ── Modal: Agregar palabras ─────────────────────────────── */
-function openAddWordsModal() {
-  const cat = document.getElementById('add-to-category-select').value;
-  if (!cat) { toast('Selecciona una categoría', 'error'); return; }
-  addingWordsToCategory = cat;
-  document.getElementById('modal-cat-label').textContent = cat;
-  document.getElementById('modal-words-input').value = '';
-  openModal('modal-add-words');
-}
-
-function saveAddedWords() {
-  const raw   = document.getElementById('modal-words-input').value;
-  const words = raw.split(/[,\n]+/).map(w => w.trim()).filter(Boolean);
-  if (words.length === 0) { toast('Escribe al menos una palabra', 'error'); return; }
-  Storage.addWordsToCategory(addingWordsToCategory, words);
-  renderCategoryBadges();
-  updateCategorySelects();
-  closeModal('modal-add-words');
-  toast(`${words.length} palabra${words.length !== 1 ? 's' : ''} agregada${words.length !== 1 ? 's' : ''}`, 'success');
-}
-
-/* ── Modal: Eliminar categoría ───────────────────────────── */
-function openDeleteCategoryModal() {
-  const custom = Storage.getCustomCategories();
-  const select = document.getElementById('modal-delete-cat-select');
-  select.innerHTML = Object.keys(custom)
-    .map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-  openModal('modal-delete-cat');
-}
-
-function confirmDeleteCategory() {
-  const cat = document.getElementById('modal-delete-cat-select').value;
-  if (!cat) return;
-  Storage.deleteCustomCategory(cat);
-  selectedCategories.delete(cat);
-  renderCategoryBadges();
-  updateCategorySelects();
-  closeModal('modal-delete-cat');
-  toast(`Categoría "${cat}" eliminada`, 'success');
-}
-
-/* ── Modal helpers ───────────────────────────────────────── */
-function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
-function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-function closeModalOnOverlay(e, id) {
-  if (e.target === e.currentTarget) closeModal(id);
-}
-
-/* ── Iniciar juego ───────────────────────────────────────── */
-function startGame() {
-  const playerNames   = getPlayerNames();
-  const playerCount   = playerNames.length;
-  const impostorCount = parseInt(document.getElementById('impostor-count').value) || 1;
-
-  if (selectedCategories.size === 0) {
-    toast('Selecciona al menos una categoría', 'error'); return;
-  }
-  if (playerCount < 2) {
-    toast('Se necesitan al menos 2 jugadores', 'error'); return;
-  }
-  if (impostorCount < 1) {
-    toast('Debe haber al menos 1 impostor', 'error'); return;
-  }
-  if (impostorCount >= playerCount) {
-    toast(`Con ${playerCount} jugadores el máximo es ${playerCount - 1} impostor${playerCount - 1 !== 1 ? 'es' : ''}`, 'error'); return;
-  }
-
-  // Juntar palabras de todas las categorías seleccionadas
-  const allCats = Storage.getAllCategories();
-  const wordPool = [];
-  for (const cat of selectedCategories) {
-    if (allCats[cat]) wordPool.push(...allCats[cat]);
-  }
-  if (wordPool.length === 0) {
-    toast('Las categorías seleccionadas no tienen palabras', 'error'); return;
-  }
-
-  // Elegir una palabra al azar del pool combinado
-  const word = wordPool[Math.floor(Math.random() * wordPool.length)];
-
-  // Etiqueta de categoría: si es una sola, mostrar su nombre; si son varias, "Mixto"
-  const categoryLabel = selectedCategories.size === 1
-    ? [...selectedCategories][0]
-    : 'Mixto (' + [...selectedCategories].join(', ') + ')';
-
-  Game.init({ playerNames, impostorCount, category: categoryLabel, word });
-  showPage('page-reveal');
-  loadRevealScreen();
-}
-
-/* ── Pantalla de reveal ──────────────────────────────────── */
-// Duración de la animación de flip en ms (debe coincidir con el CSS transition)
-const FLIP_DURATION = 550;
-
-function loadRevealScreen() {
-  cardFlipped = false;
-
-  const player = Game.getCurrentPlayer();
-  const total  = Game.state.players.length;
-  const idx    = Game.state.currentPlayerIndex;
-
-  // Actualizar nombre y progreso (visible en el front, no hay riesgo)
-  document.getElementById('reveal-progress').textContent    = `Jugador ${idx + 1} de ${total}`;
-  document.getElementById('reveal-player-name').textContent = player.name;
-
-  // Limpiar el back antes de que sea visible (carta cerrada)
-  document.getElementById('reveal-category').textContent = '';
-  const wordEl = document.getElementById('reveal-word');
-  wordEl.textContent = '';
-  wordEl.className   = 'word-display';
-
-  // Asegurar carta cerrada sin transición para no mostrar nada
-  const card = document.getElementById('word-card');
-  card.style.transition = 'none';        // deshabilitar animación momentáneamente
-  card.classList.remove('flipped');
-  card.onclick = null;
-
-  // Forzar reflow para que el browser aplique el estado sin transición
-  void card.offsetWidth;
-
-  // Restaurar la transición — ahora sí cargar el contenido real
-  card.style.transition = '';
-  document.getElementById('reveal-category').textContent = Game.state.category;
-  if (player.isImpostor) {
-    wordEl.textContent = '¡ERES EL IMPOSTOR!';
-    wordEl.className   = 'word-display is-impostor';
-  } else {
-    wordEl.textContent = Game.state.word;
-    wordEl.className   = 'word-display';
-  }
-
-  document.getElementById('next-player-btn').classList.add('hidden');
-
-  // Habilitar el flip con un pequeño delay para evitar taps accidentales
-  setTimeout(() => { card.onclick = flipCard; }, 300);
-}
-
-function flipCard() {
-  if (cardFlipped) return;
-  cardFlipped = true;
-  const card = document.getElementById('word-card');
-  card.classList.add('flipped');
-  card.onclick = null; // desactivar re-flip mientras anima
-  // Mostrar botón "Siguiente" recién cuando termina la animación
-  setTimeout(() => {
-    document.getElementById('next-player-btn').classList.remove('hidden');
-  }, FLIP_DURATION);
-}
-
-function nextPlayer() {
-  const hasMore = Game.nextPlayer();
-  if (hasMore) {
-    // 1. Ocultar botón de inmediato para evitar doble tap
-    document.getElementById('next-player-btn').classList.add('hidden');
-    // 2. Cerrar la carta (con animación) mostrando el back vacío
-    const card = document.getElementById('word-card');
-    card.onclick = null;
-    card.classList.remove('flipped');
-    // 3. Esperar que termine el cierre y recién entonces cargar el nuevo jugador
-    setTimeout(loadRevealScreen, FLIP_DURATION);
-  } else {
-    showPage('page-start');
-    launchConfetti();
-  }
-}
-
-/* ── Confetti ────────────────────────────────────────────── */
-function launchConfetti() {
-  const wrap   = document.getElementById('confetti-wrap');
-  wrap.innerHTML = '';
-  const colors = ['#e63946','#f4a261','#2ec27e','#4cc9f0','#f8f8f2'];
-  for (let i = 0; i < 60; i++) {
-    const dot  = document.createElement('div');
-    const size = 4 + Math.random() * 7;
-    dot.className = 'confetti-dot';
-    dot.style.cssText =
-      `left:${Math.random()*100}%;top:-10px;` +
-      `width:${size}px;height:${size}px;` +
-      `background:${colors[Math.floor(Math.random()*colors.length)]};` +
-      `border-radius:${Math.random()>0.5?'50%':'2px'};` +
-      `animation-duration:${2+Math.random()*3}s;` +
-      `animation-delay:${Math.random()*2}s;`;
-    wrap.appendChild(dot);
-  }
-}
-
-/* ── Nueva partida ───────────────────────────────────────── */
-function goToSetup() {
-  showPage('page-setup');
-}
-
-/* ── IA: Generar categoría ───────────────────────────────── */
-let aiPendingName  = '';
-let aiPendingWords = [];
-
-async function generateCategory() {
-  const prompt = document.getElementById('ai-prompt').value.trim();
-  const count  = parseInt(document.getElementById('ai-count').value) || 15;
-  const btn    = document.getElementById('ai-btn');
-  const errEl  = document.getElementById('ai-error');
-
-  if (!prompt) { toast('Escribí una descripción primero', 'error'); return; }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Generando...';
-  document.getElementById('ai-preview').classList.add('hidden');
-  errEl.classList.add('hidden');
-
-  try {
-    const res  = await fetch('/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, count }),
-    });
-    const data = await res.json();
-
-    if (!res.ok) {
-      const msg = data.error === 'NO_API_KEY'
-        ? '⚠️ Configurá GEMINI_API_KEY en Vercel → Settings → Environment Variables'
-        : (data.error || 'Error al generar');
-      errEl.textContent = msg;
-      errEl.classList.remove('hidden');
-      return;
-    }
-
-    aiPendingName  = data.categoryName || prompt;
-    aiPendingWords = data.words || [];
-
-    document.getElementById('ai-preview-name').textContent = aiPendingName;
-    document.getElementById('ai-preview-tags').innerHTML =
-      aiPendingWords.map(w => `<div class="ai-tag">${escapeHtml(w)}</div>`).join('');
-    document.getElementById('ai-preview').classList.remove('hidden');
-
-  } catch (e) {
-    errEl.textContent = 'No se pudo conectar con el servidor';
-    errEl.classList.remove('hidden');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '✨ Generar';
-  }
-}
-
-function saveAICategory() {
-  if (!aiPendingWords.length) return;
-  Storage.addWordsToCategory(aiPendingName, aiPendingWords);
-  renderCategoryBadges();
-  updateCategorySelects();
-  toggleCategory(aiPendingName);
-  dismissAI();
-  toast(`Categoría "${aiPendingName}" guardada con ${aiPendingWords.length} palabras`, 'success');
-}
-
-function dismissAI() {
-  aiPendingName = ''; aiPendingWords = [];
-  document.getElementById('ai-preview').classList.add('hidden');
-  document.getElementById('ai-prompt').value = '';
-}
-
-</script>
-
-</body>
-</html>
+diff --git a/index.html b/index.html
+index 3c533812a7d58f5b9633cc525cc61fb6399d548c..bc45c9c45c0e1649b4d9b7e8d8511bc0bdb9d46e 100644
+--- a/index.html
++++ b/index.html
+@@ -502,54 +502,59 @@ label {
+           <button class="btn btn-secondary" onclick="changeImpostorCount(-1)">−</button>
+           <input type="number" id="impostor-count" value="1" min="1" />
+           <button class="btn btn-secondary" onclick="changeImpostorCount(1)">+</button>
+         </div>
+         <div class="text-muted mt-sm" id="impostor-hint">1 impostor en partida de 4 jugadores</div>
+       </div>
+     </div>
+ 
+     <!-- 3. Categorías -->
+     <div class="card">
+       <div class="card-title">📂 Categoría de palabras</div>
+ 
+       <div class="field">
+         <label>Categorías (podés elegir varias o todas)</label>
+         <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;">
+           <button class="btn btn-ghost btn-sm" onclick="selectAllCategories()">&#10022; Todas</button>
+           <button class="btn btn-ghost btn-sm" onclick="clearCategorySelection()">&#10005; Ninguna</button>
+         </div>
+         <div class="cat-badges-wrap" id="category-badges" style="max-height:220px;overflow-y:auto;"></div>
+         <div class="text-muted mt-sm" id="category-hint"></div>
+       </div>
+ 
+       <hr class="divider" />
+ 
+       <div class="field">
+-        <label>Agregar palabras a categoría existente</label>
+-        <div class="flex gap-sm">
+-          <select id="add-to-category-select" style="flex:1"></select>
+-          <button class="btn btn-secondary btn-sm" onclick="openAddWordsModal()">+ Agregar</button>
++        <label>Gestionar palabras por categoría</label>
++        <div class="flex gap-sm" style="margin-bottom:0.5rem;">
++          <select id="manage-category-select" style="flex:1" onchange="changeManageCategory()"></select>
++          <button class="btn btn-secondary btn-sm" onclick="refreshManagedWords()">↻ Ver</button>
++        </div>
++        <div id="managed-words-list" class="player-list" style="max-height:180px;"></div>
++        <div class="flex gap-sm mt-sm">
++          <input type="text" id="manage-word-input" placeholder="Nueva palabra" style="flex:1" />
++          <button class="btn btn-secondary btn-sm" onclick="addWordToManagedCategory()">+ Agregar</button>
+         </div>
+       </div>
+ 
+       <div class="field">
+         <label>Crear nueva categoría</label>
+         <div class="flex gap-sm">
+           <input type="text" id="new-cat-name" placeholder="Ej: Bandas de rock" style="flex:1" />
+           <button class="btn btn-secondary btn-sm" onclick="createNewCategory()">Crear</button>
+         </div>
+       </div>
+ 
+       <div id="delete-cat-section" class="hidden">
+         <hr class="divider" />
+         <div class="flex gap-sm items-center justify-between">
+           <span class="text-muted">Categorías personalizadas</span>
+           <button class="btn btn-danger btn-sm" onclick="openDeleteCategoryModal()">🗑️ Eliminar categoría</button>
+         </div>
+       </div>
+     </div>
+ 
+ 
+     <!-- IA: Generar categoría -->
+     <div class="ai-card">
+       <div class="ai-card-title">✨ Generar categoría con IA</div>
+       <div class="ai-card-subtitle">Describí con tus palabras qué tipo de categoría querés y la IA la crea</div>
+@@ -596,227 +601,238 @@ label {
+       <div class="word-card-inner">
+         <div class="word-card-front">
+           <div class="word-card-front-icon">🃏</div>
+           <div class="word-card-front-text">Toca para revelar</div>
+         </div>
+         <div class="word-card-back">
+           <div class="word-category-label" id="reveal-category">Categoría</div>
+           <div class="word-display" id="reveal-word">Palabra</div>
+         </div>
+       </div>
+     </div>
+ 
+     <button class="btn btn-primary btn-lg hidden" id="next-player-btn" onclick="nextPlayer()">
+       Siguiente →
+     </button>
+   </div>
+ </div><!-- /page-reveal -->
+ 
+ 
+ <!-- ══════════════════════════════════════════════════════════
+      PÁGINA 3: ¡A JUGAR!
+ ══════════════════════════════════════════════════════════ -->
+ <div id="page-start" class="page">
+   <div class="confetti-wrap" id="confetti-wrap"></div>
+   <div class="start-screen">
+-    <div class="start-big-text">A<br/><span>JUGAR</span></div>
+-    <div class="start-subtitle">¡Todos ya vieron su palabra!</div>
++    <div class="start-big-text" id="start-main-text">A<br/><span>JUGAR</span></div>
++    <div class="start-subtitle" id="start-subtitle">¡Todos ya vieron su palabra!</div>
+     <button class="btn btn-secondary btn-lg" onclick="goToSetup()" style="position:relative;z-index:1;">
+       ↩ Nueva partida
+     </button>
+   </div>
+ </div><!-- /page-start -->
+ 
+ 
+ <!-- ══════════════════════════════════════════════════════════
+      MODALES
+ ══════════════════════════════════════════════════════════ -->
+ 
+-<div id="modal-add-words" class="modal-overlay hidden" onclick="closeModalOnOverlay(event,'modal-add-words')">
+-  <div class="modal-box">
+-    <div class="modal-title">Agregar palabras</div>
+-    <div class="field">
+-      <label>Categoría</label>
+-      <div id="modal-cat-label" style="font-family:var(--font-head);font-size:1.2rem;color:var(--accent);margin-bottom:0.5rem;"></div>
+-    </div>
+-    <div class="field">
+-      <label>Palabras (separadas por coma o salto de línea)</label>
+-      <textarea id="modal-words-input" rows="4" placeholder="Manzana, Banana, Kiwi..."></textarea>
+-    </div>
+-    <div class="flex gap-sm justify-between">
+-      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-add-words')">Cancelar</button>
+-      <button class="btn btn-primary btn-sm" onclick="saveAddedWords()">Guardar palabras</button>
+-    </div>
+-  </div>
+-</div>
+-
+ <div id="modal-delete-cat" class="modal-overlay hidden" onclick="closeModalOnOverlay(event,'modal-delete-cat')">
+   <div class="modal-box">
+     <div class="modal-title">Eliminar categoría</div>
+     <div class="field">
+       <label>Categoría a eliminar</label>
+       <select id="modal-delete-cat-select"></select>
+     </div>
+     <div class="text-muted" style="margin-bottom:1rem;">Esta acción no se puede deshacer.</div>
+     <div class="flex gap-sm justify-between">
+       <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-delete-cat')">Cancelar</button>
+       <button class="btn btn-danger btn-sm" onclick="confirmDeleteCategory()">Eliminar</button>
+     </div>
+   </div>
+ </div>
+ 
+ 
+ <!-- ══════════════════════════════════════════════════════════
+      SCRIPTS — todo inline, orden garantizado:
+      1. DEFAULT_CATEGORIES  →  2. Storage  →  3. Game  →  4. UI
+ ══════════════════════════════════════════════════════════ -->
+ <script>
+ 'use strict';
+ 
+ /* ─────────────────────────────────────────────────────────
+    1. CATEGORÍAS DEFAULT
+ ───────────────────────────────────────────────────────── */
+ const DEFAULT_CATEGORIES = {
+   "Frutas":       ["Manzana","Banana","Mango","Fresa","Uva","Melón","Sandía","Kiwi","Pera","Durazno","Naranja","Limón","Piña","Cereza","Higo"],
+   "Animales":     ["León","Tigre","Elefante","Jirafa","Cebra","Gorila","Pingüino","Cocodrilo","Delfín","Águila","Lobo","Zorro","Oso","Hipopótamo","Flamenco"],
+   "Países":       ["Argentina","Brasil","Francia","Japón","Alemania","Australia","Egipto","México","Canadá","India","Italia","Rusia","China","España","Sudáfrica"],
+   "Deportes":     ["Fútbol","Tenis","Natación","Boxeo","Ciclismo","Volleyball","Rugby","Golf","Atletismo","Esquí","Surf","Ajedrez","Béisbol","Baloncesto","Karate"],
+   "Profesiones":  ["Médico","Bombero","Piloto","Maestro","Chef","Astronauta","Abogado","Arquitecto","Fotógrafo","Músico","Enfermero","Detective","Ingeniero","Actor","Científico"],
+   "Películas":    ["Titanic","Avatar","Matrix","Joker","Interstellar","Coco","Up","Frozen","Shrek","Gladiador","El Padrino","Toy Story","Avengers","El Rey León","Parasite"],
+   "Comidas":      ["Pizza","Sushi","Hamburguesa","Tacos","Pasta","Asado","Empanada","Ramen","Paella","Curry","Hot Dog","Crepe","Tortilla","Ceviche","Fondue"],
+   "Instrumentos": ["Guitarra","Piano","Violín","Batería","Trompeta","Flauta","Saxofón","Bajo","Arpa","Acordeón","Clarinete","Ukulele","Cello","Oboe","Teclado"],
+   "Superhéroes":  ["Superman","Batman","Spiderman","Wonder Woman","Iron Man","Thor","Hulk","Flash","Aquaman","Pantera Negra","Capitán América","Wolverine","Deadpool","Scarlet Witch","Doctor Strange"],
+   "Videojuegos":  ["Minecraft","Fortnite","Mario","Zelda","Pokémon","FIFA","GTA","Among Us","Roblox","Tetris","Pac-Man","Sonic","Halo","Overwatch","The Sims"],
+ };
+ 
+ /* ─────────────────────────────────────────────────────────
+    2. STORAGE — categorías custom en localStorage
+ ───────────────────────────────────────────────────────── */
+-const STORAGE_KEY = 'impostor_custom_categories';
++const LEGACY_STORAGE_KEY = 'impostor_custom_categories';
++const STORAGE_KEY = 'impostor_categories_v2';
+ 
+ const Storage = {
+-  getCustomCategories() {
++  getCategories() {
+     try {
+       const raw = localStorage.getItem(STORAGE_KEY);
+-      return raw ? JSON.parse(raw) : {};
+-    } catch { return {}; }
++      if (raw) return JSON.parse(raw);
++    } catch {}
++
++    const merged = {};
++    for (const [cat, words] of Object.entries(DEFAULT_CATEGORIES)) {
++      merged[cat] = [...words];
++    }
++    try {
++      const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
++      const legacyCustom = legacyRaw ? JSON.parse(legacyRaw) : {};
++      for (const [cat, words] of Object.entries(legacyCustom)) {
++        if (!merged[cat]) merged[cat] = [];
++        const existing = new Set(merged[cat].map(w => w.toLowerCase()));
++        for (const w of words) {
++          const clean = String(w).trim();
++          if (clean && !existing.has(clean.toLowerCase())) {
++            merged[cat].push(clean);
++            existing.add(clean.toLowerCase());
++          }
++        }
++      }
++    } catch {}
++    this.saveCategories(merged);
++    return merged;
+   },
+ 
+-  saveCustomCategories(cats) {
++  saveCategories(cats) {
+     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cats)); } catch {}
+   },
+ 
+   addWordsToCategory(categoryName, words) {
+-    const custom = this.getCustomCategories();
+-    if (!custom[categoryName]) custom[categoryName] = [];
+-    const existing = new Set(custom[categoryName].map(w => w.toLowerCase()));
++    const categories = this.getCategories();
++    if (!categories[categoryName]) categories[categoryName] = [];
++    const existing = new Set(categories[categoryName].map(w => w.toLowerCase()));
+     for (const w of words) {
+       const trimmed = String(w).trim();
+       if (trimmed && !existing.has(trimmed.toLowerCase())) {
+-        custom[categoryName].push(trimmed);
++        categories[categoryName].push(trimmed);
+         existing.add(trimmed.toLowerCase());
+       }
+     }
+-    this.saveCustomCategories(custom);
++    this.saveCategories(categories);
++  },
++
++  removeWordFromCategory(categoryName, word) {
++    const categories = this.getCategories();
++    if (!categories[categoryName]) return;
++    categories[categoryName] = categories[categoryName]
++      .filter(w => w.toLowerCase() !== String(word).toLowerCase());
++    this.saveCategories(categories);
++  },
++
++  createCategory(categoryName) {
++    const categories = this.getCategories();
++    if (!categories[categoryName]) {
++      categories[categoryName] = [];
++      this.saveCategories(categories);
++    }
+   },
+ 
+   deleteCustomCategory(categoryName) {
+-    const custom = this.getCustomCategories();
+-    delete custom[categoryName];
+-    this.saveCustomCategories(custom);
++    const categories = this.getCategories();
++    delete categories[categoryName];
++    this.saveCategories(categories);
+   },
+ 
+-  // Fusiona defaults + custom sin duplicados
+   getAllCategories() {
+-    const custom = this.getCustomCategories();
+-    const merged = {};
+-    for (const [cat, words] of Object.entries(DEFAULT_CATEGORIES)) {
+-      merged[cat] = [...words];
+-    }
+-    for (const [cat, words] of Object.entries(custom)) {
+-      if (merged[cat]) {
+-        const existing = new Set(merged[cat].map(w => w.toLowerCase()));
+-        for (const w of words) {
+-          if (!existing.has(w.toLowerCase())) merged[cat].push(w);
+-        }
+-      } else {
+-        merged[cat] = [...words];
+-      }
+-    }
+-    return merged;
++    return this.getCategories();
++  },
++
++  getCustomCategories() {
++    const all = this.getCategories();
++    return Object.fromEntries(Object.entries(all).filter(([name]) => !DEFAULT_CATEGORIES[name]));
+   },
+ 
+   isCustomCategory(name) {
+-    return !!this.getCustomCategories()[name] && !DEFAULT_CATEGORIES[name];
++    return !DEFAULT_CATEGORIES[name] && !!this.getAllCategories()[name];
+   },
+ };
+ 
+ /* ─────────────────────────────────────────────────────────
+    3. GAME — asignación de roles e impostor
+ ───────────────────────────────────────────────────────── */
+ const Game = {
+-  state: { players: [], word: '', category: '', currentPlayerIndex: 0 },
++  state: { players: [], word: '', category: '', currentPlayerIndex: 0, startingPlayerIndex: 0 },
+ 
+   init({ playerNames, impostorCount, category, word }) {
+     const players = playerNames.map(name => ({ name, isImpostor: false }));
+ 
+     // Fisher-Yates shuffle de índices para elegir impostores al azar
+     const indices = players.map((_, i) => i);
+     for (let i = indices.length - 1; i > 0; i--) {
+       const j = Math.floor(Math.random() * (i + 1));
+       [indices[i], indices[j]] = [indices[j], indices[i]];
+     }
+     for (let i = 0; i < impostorCount; i++) {
+       players[indices[i]].isImpostor = true;
+     }
+ 
+-    this.state = { players, word, category, currentPlayerIndex: 0 };
++    const startingPlayerIndex = Math.floor(Math.random() * players.length);
++    this.state = { players, word, category, currentPlayerIndex: 0, startingPlayerIndex };
+   },
+ 
+   getCurrentPlayer() {
+     return this.state.players[this.state.currentPlayerIndex];
+   },
+ 
+   // Avanza al siguiente. Retorna true si quedan jugadores, false si ya terminaron.
+   nextPlayer() {
+     this.state.currentPlayerIndex++;
+     return this.state.currentPlayerIndex < this.state.players.length;
+   },
+ 
+   pickWord(category, allCategories) {
+     const words = allCategories[category];
+     if (!words || words.length === 0) return null;
+     return words[Math.floor(Math.random() * words.length)];
+   },
+ };
+ 
+ /* ─────────────────────────────────────────────────────────
+    4. UI
+ ───────────────────────────────────────────────────────── */
+ const selectedCategories = new Set(); // multi-select
+-let addingWordsToCategory = '';
+ let cardFlipped          = false;
++let startScreenTimer     = null;
+ 
+ // Init al cargar el DOM
+ document.addEventListener('DOMContentLoaded', () => {
+   updatePlayerList();
+   renderCategoryBadges();
+   updateCategorySelects();
+   // Auto-seleccionar la primera categoría
+   const first = Object.keys(Storage.getAllCategories())[0];
+   if (first) toggleCategory(first);
+ });
+ 
+ /* Navegación */
+ function showPage(id) {
+   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+   document.getElementById(id).classList.add('active');
+   window.scrollTo(0, 0);
+ }
+ 
+ /* Toast */
+ function toast(msg, type) {
+   const el = document.createElement('div');
+   el.className = type ? `toast ${type}` : 'toast';
+   el.textContent = msg;
+   document.getElementById('toast-container').appendChild(el);
+   setTimeout(() => el.remove(), 3000);
+@@ -952,85 +968,115 @@ function updateCategoryHint() {
+ 
+ function renderCategoryBadges() {
+   const container = document.getElementById('category-badges');
+   const all = Storage.getAllCategories();
+ 
+   container.innerHTML = '';
+   for (const cat of Object.keys(all)) {
+     const badge = document.createElement('div');
+     badge.className = 'cat-badge' +
+       (Storage.isCustomCategory(cat) ? ' is-custom' : '') +
+       (selectedCategories.has(cat) ? ' selected' : '');
+     badge.dataset.cat = cat;
+     badge.innerHTML = `${escapeHtml(cat)} <small style="opacity:0.45">${all[cat].length}</small>`;
+     badge.addEventListener('click', () => toggleCategory(cat));
+     container.appendChild(badge);
+   }
+ 
+   const hasCustom = Object.keys(Storage.getCustomCategories()).length > 0;
+   document.getElementById('delete-cat-section').classList.toggle('hidden', !hasCustom);
+   updateCategoryHint();
+ }
+ 
+ function updateCategorySelects() {
+   const all  = Storage.getAllCategories();
+   const opts = Object.keys(all).map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+-  document.getElementById('add-to-category-select').innerHTML = opts;
++  const manageSelect = document.getElementById('manage-category-select');
++  const prevValue = manageSelect.value;
++  manageSelect.innerHTML = opts;
++  if (prevValue && all[prevValue]) manageSelect.value = prevValue;
++  changeManageCategory();
+ }
+ 
+ function createNewCategory() {
+   const name = document.getElementById('new-cat-name').value.trim();
+   if (!name) { toast('Escribe un nombre de categoría', 'error'); return; }
+-  Storage.addWordsToCategory(name, []);
++  Storage.createCategory(name);
+   document.getElementById('new-cat-name').value = '';
+   renderCategoryBadges();
+   updateCategorySelects();
+   toggleCategory(name);
+   toast(`Categoría "${name}" creada`, 'success');
+ }
+ 
+-/* ── Modal: Agregar palabras ─────────────────────────────── */
+-function openAddWordsModal() {
+-  const cat = document.getElementById('add-to-category-select').value;
+-  if (!cat) { toast('Selecciona una categoría', 'error'); return; }
+-  addingWordsToCategory = cat;
+-  document.getElementById('modal-cat-label').textContent = cat;
+-  document.getElementById('modal-words-input').value = '';
+-  openModal('modal-add-words');
++function changeManageCategory() {
++  refreshManagedWords();
+ }
+ 
+-function saveAddedWords() {
+-  const raw   = document.getElementById('modal-words-input').value;
+-  const words = raw.split(/[,\n]+/).map(w => w.trim()).filter(Boolean);
+-  if (words.length === 0) { toast('Escribe al menos una palabra', 'error'); return; }
+-  Storage.addWordsToCategory(addingWordsToCategory, words);
++function refreshManagedWords() {
++  const cat = document.getElementById('manage-category-select').value;
++  const list = document.getElementById('managed-words-list');
++  const all = Storage.getAllCategories();
++  const words = all[cat] || [];
++  if (!cat) {
++    list.innerHTML = '<div class="text-muted">No hay categorías disponibles.</div>';
++    return;
++  }
++  if (!words.length) {
++    list.innerHTML = '<div class="text-muted">Esta categoría no tiene palabras todavía.</div>';
++    return;
++  }
++  const encodedCat = encodeURIComponent(cat);
++  list.innerHTML = words.map((word, idx) => {
++    const encodedWord = encodeURIComponent(word);
++    return `<div class="player-item"><span class="player-number">${idx + 1}</span><span style="flex:1">${escapeHtml(word)}</span>` +
++      `<button class="btn btn-danger btn-sm" onclick="removeWordFromManagedCategory('${encodedCat}','${encodedWord}')">Eliminar</button></div>`;
++  }).join('');
++}
++
++function addWordToManagedCategory() {
++  const cat = document.getElementById('manage-category-select').value;
++  const input = document.getElementById('manage-word-input');
++  const words = input.value.split(/[,\n]+/).map(w => w.trim()).filter(Boolean);
++  if (!cat) { toast('Selecciona una categoría', 'error'); return; }
++  if (!words.length) { toast('Escribe al menos una palabra', 'error'); return; }
++  Storage.addWordsToCategory(cat, words);
++  input.value = '';
+   renderCategoryBadges();
+-  updateCategorySelects();
+-  closeModal('modal-add-words');
++  refreshManagedWords();
+   toast(`${words.length} palabra${words.length !== 1 ? 's' : ''} agregada${words.length !== 1 ? 's' : ''}`, 'success');
+ }
+ 
++function removeWordFromManagedCategory(encodedCategoryName, encodedWord) {
++  const categoryName = decodeURIComponent(encodedCategoryName);
++  const word = decodeURIComponent(encodedWord);
++  Storage.removeWordFromCategory(categoryName, word);
++  renderCategoryBadges();
++  refreshManagedWords();
++  toast(`Palabra "${word}" eliminada`, 'success');
++}
++
+ /* ── Modal: Eliminar categoría ───────────────────────────── */
+ function openDeleteCategoryModal() {
+   const custom = Storage.getCustomCategories();
+   const select = document.getElementById('modal-delete-cat-select');
+   select.innerHTML = Object.keys(custom)
+     .map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+   openModal('modal-delete-cat');
+ }
+ 
+ function confirmDeleteCategory() {
+   const cat = document.getElementById('modal-delete-cat-select').value;
+   if (!cat) return;
+   Storage.deleteCustomCategory(cat);
+   selectedCategories.delete(cat);
+   renderCategoryBadges();
+   updateCategorySelects();
+   closeModal('modal-delete-cat');
+   toast(`Categoría "${cat}" eliminada`, 'success');
+ }
+ 
+ /* ── Modal helpers ───────────────────────────────────────── */
+ function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
+ function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+ function closeModalOnOverlay(e, id) {
+   if (e.target === e.currentTarget) closeModal(id);
+@@ -1127,55 +1173,69 @@ function loadRevealScreen() {
+ 
+ function flipCard() {
+   if (cardFlipped) return;
+   cardFlipped = true;
+   const card = document.getElementById('word-card');
+   card.classList.add('flipped');
+   card.onclick = null; // desactivar re-flip mientras anima
+   // Mostrar botón "Siguiente" recién cuando termina la animación
+   setTimeout(() => {
+     document.getElementById('next-player-btn').classList.remove('hidden');
+   }, FLIP_DURATION);
+ }
+ 
+ function nextPlayer() {
+   const hasMore = Game.nextPlayer();
+   if (hasMore) {
+     // 1. Ocultar botón de inmediato para evitar doble tap
+     document.getElementById('next-player-btn').classList.add('hidden');
+     // 2. Cerrar la carta (con animación) mostrando el back vacío
+     const card = document.getElementById('word-card');
+     card.onclick = null;
+     card.classList.remove('flipped');
+     // 3. Esperar que termine el cierre y recién entonces cargar el nuevo jugador
+     setTimeout(loadRevealScreen, FLIP_DURATION);
+   } else {
++    prepareStartScreen();
+     showPage('page-start');
+     launchConfetti();
+   }
+ }
+ 
++function prepareStartScreen() {
++  const starter = Game.state.players[Game.state.startingPlayerIndex];
++  const title = document.getElementById('start-main-text');
++  const subtitle = document.getElementById('start-subtitle');
++  if (startScreenTimer) clearTimeout(startScreenTimer);
++  title.innerHTML = `${escapeHtml(starter.name)}<br/><span>COMIENZA</span>`;
++  subtitle.textContent = 'Preparados...';
++  startScreenTimer = setTimeout(() => {
++    title.innerHTML = 'A<br/><span>JUGAR</span>';
++    subtitle.textContent = '¡Todos ya vieron su palabra!';
++  }, 1800);
++}
++
+ /* ── Confetti ────────────────────────────────────────────── */
+ function launchConfetti() {
+   const wrap   = document.getElementById('confetti-wrap');
+   wrap.innerHTML = '';
+   const colors = ['#e63946','#f4a261','#2ec27e','#4cc9f0','#f8f8f2'];
+   for (let i = 0; i < 60; i++) {
+     const dot  = document.createElement('div');
+     const size = 4 + Math.random() * 7;
+     dot.className = 'confetti-dot';
+     dot.style.cssText =
+       `left:${Math.random()*100}%;top:-10px;` +
+       `width:${size}px;height:${size}px;` +
+       `background:${colors[Math.floor(Math.random()*colors.length)]};` +
+       `border-radius:${Math.random()>0.5?'50%':'2px'};` +
+       `animation-duration:${2+Math.random()*3}s;` +
+       `animation-delay:${Math.random()*2}s;`;
+     wrap.appendChild(dot);
+   }
+ }
+ 
+ /* ── Nueva partida ───────────────────────────────────────── */
+ function goToSetup() {
+   showPage('page-setup');
+ }
+ 
