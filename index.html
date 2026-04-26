@@ -524,10 +524,15 @@ label {
       <hr class="divider" />
 
       <div class="field">
-        <label>Agregar palabras a categoría existente</label>
-        <div class="flex gap-sm">
-          <select id="add-to-category-select" style="flex:1"></select>
-          <button class="btn btn-secondary btn-sm" onclick="openAddWordsModal()">+ Agregar</button>
+        <label>Gestionar palabras por categoría</label>
+        <div class="flex gap-sm" style="margin-bottom:0.5rem;">
+          <select id="manage-category-select" style="flex:1" onchange="changeManageCategory()"></select>
+          <button class="btn btn-secondary btn-sm" onclick="refreshManagedWords()">↻ Ver</button>
+        </div>
+        <div id="managed-words-list" class="player-list" style="max-height:180px;"></div>
+        <div class="flex gap-sm mt-sm">
+          <input type="text" id="manage-word-input" placeholder="Nueva palabra" style="flex:1" />
+          <button class="btn btn-secondary btn-sm" onclick="addWordToManagedCategory()">+ Agregar</button>
         </div>
       </div>
 
@@ -618,8 +623,8 @@ label {
 <div id="page-start" class="page">
   <div class="confetti-wrap" id="confetti-wrap"></div>
   <div class="start-screen">
-    <div class="start-big-text">A<br/><span>JUGAR</span></div>
-    <div class="start-subtitle">¡Todos ya vieron su palabra!</div>
+    <div class="start-big-text" id="start-main-text">A<br/><span>JUGAR</span></div>
+    <div class="start-subtitle" id="start-subtitle">¡Todos ya vieron su palabra!</div>
     <button class="btn btn-secondary btn-lg" onclick="goToSetup()" style="position:relative;z-index:1;">
       ↩ Nueva partida
     </button>
@@ -630,24 +635,6 @@ label {
 <!-- ══════════════════════════════════════════════════════════
      MODALES
 ══════════════════════════════════════════════════════════ -->
-
-<div id="modal-add-words" class="modal-overlay hidden" onclick="closeModalOnOverlay(event,'modal-add-words')">
-  <div class="modal-box">
-    <div class="modal-title">Agregar palabras</div>
-    <div class="field">
-      <label>Categoría</label>
-      <div id="modal-cat-label" style="font-family:var(--font-head);font-size:1.2rem;color:var(--accent);margin-bottom:0.5rem;"></div>
-    </div>
-    <div class="field">
-      <label>Palabras (separadas por coma o salto de línea)</label>
-      <textarea id="modal-words-input" rows="4" placeholder="Manzana, Banana, Kiwi..."></textarea>
-    </div>
-    <div class="flex gap-sm justify-between">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-add-words')">Cancelar</button>
-      <button class="btn btn-primary btn-sm" onclick="saveAddedWords()">Guardar palabras</button>
-    </div>
-  </div>
-</div>
 
 <div id="modal-delete-cat" class="modal-overlay hidden" onclick="closeModalOnOverlay(event,'modal-delete-cat')">
   <div class="modal-box">
@@ -691,62 +678,90 @@ const DEFAULT_CATEGORIES = {
 /* ─────────────────────────────────────────────────────────
    2. STORAGE — categorías custom en localStorage
 ───────────────────────────────────────────────────────── */
-const STORAGE_KEY = 'impostor_custom_categories';
+const LEGACY_STORAGE_KEY = 'impostor_custom_categories';
+const STORAGE_KEY = 'impostor_categories_v2';
 
 const Storage = {
-  getCustomCategories() {
+  getCategories() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch { return {}; }
-  },
+      if (raw) return JSON.parse(raw);
+    } catch {}
 
-  saveCustomCategories(cats) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cats)); } catch {}
-  },
-
-  addWordsToCategory(categoryName, words) {
-    const custom = this.getCustomCategories();
-    if (!custom[categoryName]) custom[categoryName] = [];
-    const existing = new Set(custom[categoryName].map(w => w.toLowerCase()));
-    for (const w of words) {
-      const trimmed = String(w).trim();
-      if (trimmed && !existing.has(trimmed.toLowerCase())) {
-        custom[categoryName].push(trimmed);
-        existing.add(trimmed.toLowerCase());
-      }
-    }
-    this.saveCustomCategories(custom);
-  },
-
-  deleteCustomCategory(categoryName) {
-    const custom = this.getCustomCategories();
-    delete custom[categoryName];
-    this.saveCustomCategories(custom);
-  },
-
-  // Fusiona defaults + custom sin duplicados
-  getAllCategories() {
-    const custom = this.getCustomCategories();
     const merged = {};
     for (const [cat, words] of Object.entries(DEFAULT_CATEGORIES)) {
       merged[cat] = [...words];
     }
-    for (const [cat, words] of Object.entries(custom)) {
-      if (merged[cat]) {
+    try {
+      const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
+      const legacyCustom = legacyRaw ? JSON.parse(legacyRaw) : {};
+      for (const [cat, words] of Object.entries(legacyCustom)) {
+        if (!merged[cat]) merged[cat] = [];
         const existing = new Set(merged[cat].map(w => w.toLowerCase()));
         for (const w of words) {
-          if (!existing.has(w.toLowerCase())) merged[cat].push(w);
+          const clean = String(w).trim();
+          if (clean && !existing.has(clean.toLowerCase())) {
+            merged[cat].push(clean);
+            existing.add(clean.toLowerCase());
+          }
         }
-      } else {
-        merged[cat] = [...words];
       }
-    }
+    } catch {}
+    this.saveCategories(merged);
     return merged;
   },
 
+  saveCategories(cats) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cats)); } catch {}
+  },
+
+  addWordsToCategory(categoryName, words) {
+    const categories = this.getCategories();
+    if (!categories[categoryName]) categories[categoryName] = [];
+    const existing = new Set(categories[categoryName].map(w => w.toLowerCase()));
+    for (const w of words) {
+      const trimmed = String(w).trim();
+      if (trimmed && !existing.has(trimmed.toLowerCase())) {
+        categories[categoryName].push(trimmed);
+        existing.add(trimmed.toLowerCase());
+      }
+    }
+    this.saveCategories(categories);
+  },
+
+  removeWordFromCategory(categoryName, word) {
+    const categories = this.getCategories();
+    if (!categories[categoryName]) return;
+    categories[categoryName] = categories[categoryName]
+      .filter(w => w.toLowerCase() !== String(word).toLowerCase());
+    this.saveCategories(categories);
+  },
+
+  createCategory(categoryName) {
+    const categories = this.getCategories();
+    if (!categories[categoryName]) {
+      categories[categoryName] = [];
+      this.saveCategories(categories);
+    }
+  },
+
+  deleteCustomCategory(categoryName) {
+    const categories = this.getCategories();
+    delete categories[categoryName];
+    this.saveCategories(categories);
+  },
+
+  getAllCategories() {
+    return this.getCategories();
+  },
+
+  getCustomCategories() {
+    const all = this.getCategories();
+    return Object.fromEntries(Object.entries(all).filter(([name]) => !DEFAULT_CATEGORIES[name]));
+  },
+
   isCustomCategory(name) {
-    return !!this.getCustomCategories()[name] && !DEFAULT_CATEGORIES[name];
+    return !DEFAULT_CATEGORIES[name] && !!this.getAllCategories()[name];
   },
 };
 
@@ -754,7 +769,7 @@ const Storage = {
    3. GAME — asignación de roles e impostor
 ───────────────────────────────────────────────────────── */
 const Game = {
-  state: { players: [], word: '', category: '', currentPlayerIndex: 0 },
+  state: { players: [], word: '', category: '', currentPlayerIndex: 0, startingPlayerIndex: 0 },
 
   init({ playerNames, impostorCount, category, word }) {
     const players = playerNames.map(name => ({ name, isImpostor: false }));
@@ -769,7 +784,8 @@ const Game = {
       players[indices[i]].isImpostor = true;
     }
 
-    this.state = { players, word, category, currentPlayerIndex: 0 };
+    const startingPlayerIndex = Math.floor(Math.random() * players.length);
+    this.state = { players, word, category, currentPlayerIndex: 0, startingPlayerIndex };
   },
 
   getCurrentPlayer() {
@@ -793,8 +809,8 @@ const Game = {
    4. UI
 ───────────────────────────────────────────────────────── */
 const selectedCategories = new Set(); // multi-select
-let addingWordsToCategory = '';
 let cardFlipped          = false;
+let startScreenTimer     = null;
 
 // Init al cargar el DOM
 document.addEventListener('DOMContentLoaded', () => {
@@ -974,13 +990,17 @@ function renderCategoryBadges() {
 function updateCategorySelects() {
   const all  = Storage.getAllCategories();
   const opts = Object.keys(all).map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-  document.getElementById('add-to-category-select').innerHTML = opts;
+  const manageSelect = document.getElementById('manage-category-select');
+  const prevValue = manageSelect.value;
+  manageSelect.innerHTML = opts;
+  if (prevValue && all[prevValue]) manageSelect.value = prevValue;
+  changeManageCategory();
 }
 
 function createNewCategory() {
   const name = document.getElementById('new-cat-name').value.trim();
   if (!name) { toast('Escribe un nombre de categoría', 'error'); return; }
-  Storage.addWordsToCategory(name, []);
+  Storage.createCategory(name);
   document.getElementById('new-cat-name').value = '';
   renderCategoryBadges();
   updateCategorySelects();
@@ -988,25 +1008,51 @@ function createNewCategory() {
   toast(`Categoría "${name}" creada`, 'success');
 }
 
-/* ── Modal: Agregar palabras ─────────────────────────────── */
-function openAddWordsModal() {
-  const cat = document.getElementById('add-to-category-select').value;
-  if (!cat) { toast('Selecciona una categoría', 'error'); return; }
-  addingWordsToCategory = cat;
-  document.getElementById('modal-cat-label').textContent = cat;
-  document.getElementById('modal-words-input').value = '';
-  openModal('modal-add-words');
+function changeManageCategory() {
+  refreshManagedWords();
 }
 
-function saveAddedWords() {
-  const raw   = document.getElementById('modal-words-input').value;
-  const words = raw.split(/[,\n]+/).map(w => w.trim()).filter(Boolean);
-  if (words.length === 0) { toast('Escribe al menos una palabra', 'error'); return; }
-  Storage.addWordsToCategory(addingWordsToCategory, words);
+function refreshManagedWords() {
+  const cat = document.getElementById('manage-category-select').value;
+  const list = document.getElementById('managed-words-list');
+  const all = Storage.getAllCategories();
+  const words = all[cat] || [];
+  if (!cat) {
+    list.innerHTML = '<div class="text-muted">No hay categorías disponibles.</div>';
+    return;
+  }
+  if (!words.length) {
+    list.innerHTML = '<div class="text-muted">Esta categoría no tiene palabras todavía.</div>';
+    return;
+  }
+  const encodedCat = encodeURIComponent(cat);
+  list.innerHTML = words.map((word, idx) => {
+    const encodedWord = encodeURIComponent(word);
+    return `<div class="player-item"><span class="player-number">${idx + 1}</span><span style="flex:1">${escapeHtml(word)}</span>` +
+      `<button class="btn btn-danger btn-sm" onclick="removeWordFromManagedCategory('${encodedCat}','${encodedWord}')">Eliminar</button></div>`;
+  }).join('');
+}
+
+function addWordToManagedCategory() {
+  const cat = document.getElementById('manage-category-select').value;
+  const input = document.getElementById('manage-word-input');
+  const words = input.value.split(/[,\n]+/).map(w => w.trim()).filter(Boolean);
+  if (!cat) { toast('Selecciona una categoría', 'error'); return; }
+  if (!words.length) { toast('Escribe al menos una palabra', 'error'); return; }
+  Storage.addWordsToCategory(cat, words);
+  input.value = '';
   renderCategoryBadges();
-  updateCategorySelects();
-  closeModal('modal-add-words');
+  refreshManagedWords();
   toast(`${words.length} palabra${words.length !== 1 ? 's' : ''} agregada${words.length !== 1 ? 's' : ''}`, 'success');
+}
+
+function removeWordFromManagedCategory(encodedCategoryName, encodedWord) {
+  const categoryName = decodeURIComponent(encodedCategoryName);
+  const word = decodeURIComponent(encodedWord);
+  Storage.removeWordFromCategory(categoryName, word);
+  renderCategoryBadges();
+  refreshManagedWords();
+  toast(`Palabra "${word}" eliminada`, 'success');
 }
 
 /* ── Modal: Eliminar categoría ───────────────────────────── */
@@ -1149,9 +1195,23 @@ function nextPlayer() {
     // 3. Esperar que termine el cierre y recién entonces cargar el nuevo jugador
     setTimeout(loadRevealScreen, FLIP_DURATION);
   } else {
+    prepareStartScreen();
     showPage('page-start');
     launchConfetti();
   }
+}
+
+function prepareStartScreen() {
+  const starter = Game.state.players[Game.state.startingPlayerIndex];
+  const title = document.getElementById('start-main-text');
+  const subtitle = document.getElementById('start-subtitle');
+  if (startScreenTimer) clearTimeout(startScreenTimer);
+  title.innerHTML = `${escapeHtml(starter.name)}<br/><span>COMIENZA</span>`;
+  subtitle.textContent = 'Preparados...';
+  startScreenTimer = setTimeout(() => {
+    title.innerHTML = 'A<br/><span>JUGAR</span>';
+    subtitle.textContent = '¡Todos ya vieron su palabra!';
+  }, 1800);
 }
 
 /* ── Confetti ────────────────────────────────────────────── */
