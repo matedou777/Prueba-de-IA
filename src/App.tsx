@@ -739,8 +739,16 @@ export default function App() {
       setCategoryWordInput('');
     };
 
+    const handleCloseModal = () => {
+      if (categoryWordInput.trim()) {
+        addWordsToCategory(catName, categoryWordInput);
+        setCategoryWordInput('');
+      }
+      setManagingCategory(null);
+    };
+
     return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={() => setManagingCategory(null)}>
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={handleCloseModal}>
         <motion.div 
           initial={{ scale: 0.95, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -750,7 +758,7 @@ export default function App() {
         >
           <div className="flex items-center justify-between mb-6">
             <h2 className="modal-title text-2xl text-[var(--accent)] tracking-wider">{catName}</h2>
-            <button onClick={() => setManagingCategory(null)} className="p-2 hover:bg-[var(--surface2)] rounded-full transition-colors text-[var(--muted)] hover:text-white">
+            <button onClick={handleCloseModal} className="p-2 hover:bg-[var(--surface2)] rounded-full transition-colors text-[var(--muted)] hover:text-white">
               <X size={20} />
             </button>
           </div>
@@ -784,26 +792,29 @@ export default function App() {
             <label className="block text-[9px] uppercase tracking-[0.3em] text-[var(--muted)] mb-3 font-bold">AGREGAR PALABRAS</label>
             <textarea 
               className="w-full bg-[var(--surface2)] border border-[var(--border)] rounded-lg p-3.5 text-xs outline-none focus:border-[var(--accent)] mb-4 resize-none transition-all placeholder:text-[var(--muted)]/40"
-              placeholder="Manzana, Banana, Kiwi..."
+              placeholder="Manzana, Banana, Kiwi... (se guardan al cerrar)"
               rows={3}
               value={categoryWordInput}
               onChange={e => setCategoryWordInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSaveWords();
+                }
+              }}
             />
-            <div className="flex gap-2">
-               <button className="flex-1 bg-[var(--accent)] text-white py-3.5 rounded-xl font-bold text-[10px] tracking-[0.2em] uppercase hover:bg-[var(--accent2)] transition-all shadow-lg shadow-[var(--accent)]/20" onClick={handleSaveWords}>
-                 GUARDAR PALABRAS
-               </button>
-               {isCustom && !isDefault && (
-                 <button className="px-4 border border-[var(--accent)] text-[var(--accent)] rounded-xl hover:bg-[var(--accent)] hover:text-white transition-all" onClick={() => { 
+            {isCustom && !isDefault && (
+              <div className="flex mt-2">
+                 <button className="flex-1 border border-[var(--accent)] text-[var(--accent)] py-3 rounded-xl hover:bg-[var(--accent)] hover:text-white transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2" onClick={() => { 
                    if(confirm('¿Eliminar toda la categoría?')) {
                      deleteCustomCategory(catName);
                      setManagingCategory(null);
                    }
                  }}>
-                   <Trash2 size={18} />
+                   <Trash2 size={16} /> ELIMINAR CATEGORÍA
                  </button>
-               )}
-            </div>
+              </div>
+            )}
           </div>
         </motion.div>
       </div>
