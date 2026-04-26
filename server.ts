@@ -16,7 +16,7 @@ app.post("/api/generate", async (req, res) => {
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: 'NO_API_KEY' });
+    if (!apiKey) return res.status(400).json({ error: 'NO_API_KEY' });
 
     const safeCount = Math.min(Math.max(parseInt(count as string) || 15, 5), 50);
 
@@ -36,7 +36,7 @@ Respondé ÚNICAMENTE con un objeto JSON válido sin saltos de línea internos:
       const listData: any = await listRes.json();
       
       if (!listData.models) {
-        return res.status(502).json({ error: 'La API Key es inválida o no tiene acceso a la API.' });
+        return res.status(400).json({ error: 'La API Key es inválida o no tiene acceso a la API.' });
       }
 
       // Buscamos el primer modelo que sirva para generar texto
@@ -46,7 +46,7 @@ Respondé ÚNICAMENTE con un objeto JSON válido sin saltos de línea internos:
       );
 
       if (!validModel) {
-        return res.status(502).json({ error: 'Tu cuenta de Google no tiene modelos de texto habilitados.' });
+        return res.status(400).json({ error: 'Tu cuenta de Google no tiene modelos de texto habilitados.' });
       }
 
       // 2. GENERACIÓN
@@ -74,13 +74,13 @@ Respondé ÚNICAMENTE con un objeto JSON válido sin saltos de línea internos:
       const data: any = await r.json();
       
       if (data.error) {
-         return res.status(502).json({ error: `Google API Error: ${data.error.message}` });
+         return res.status(400).json({ error: `Google API Error: ${data.error.message}` });
       }
 
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
       
       if (!text) {
-        return res.status(502).json({ error: 'Gemini no devolvió contenido' });
+        return res.status(400).json({ error: 'Gemini no devolvió contenido' });
       }
 
       const cleanText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
@@ -114,7 +114,7 @@ Respondé ÚNICAMENTE con un objeto JSON válido sin saltos de línea internos:
       
     } catch (e: any) {
       console.error('Exception:', e);
-      return res.status(500).json({ error: `Error interno: ${e.message}` });
+      return res.status(400).json({ error: `Error interno: ${e.message}` });
     }
   });
 
